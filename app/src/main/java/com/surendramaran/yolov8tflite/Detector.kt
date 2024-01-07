@@ -143,7 +143,6 @@ class Detector(
         val x2 = cx + w / 2
         val y2 = cy + h / 2
 
-        // Ensure that the coordinates are within the valid range
         if (x1 < 0f || y1 < 0f || x2 < 0f || y2 < 0f || x1 > 1f || y1 > 1f || x2 > 1f || y2 > 1f) {
             return null
         }
