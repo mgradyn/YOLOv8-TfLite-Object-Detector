@@ -2,10 +2,12 @@ package com.surendramaran.yolov8tflite
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.media.FaceDetector.Face.CONFIDENCE_THRESHOLD
 import android.os.SystemClock
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.gpu.GpuDelegateFactory
+import org.tensorflow.lite.gpu.GpuDelegate
+import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
 import org.tensorflow.lite.support.common.ops.NormalizeOp
@@ -16,7 +18,6 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import kotlin.math.min
 
 class Detector(
     private val context: Context,
@@ -41,8 +42,39 @@ class Detector(
     fun setup() {
         val model = FileUtil.loadMappedFile(context, modelPath)
         val options = Interpreter.Options()
-        options.numThreads = 4
-        interpreter = Interpreter(model, options)
+
+//        var nnApiDelegate: NnApiDelegate? = null
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//            nnApiDelegate = NnApiDelegate()
+//            options.addDelegate(nnApiDelegate)
+
+        val compatList = CompatibilityList()
+
+        options.apply{
+            if(compatList.isDelegateSupportedOnThisDevice){
+                try {
+                    val delegateOptions = compatList.bestOptionsForThisDevice
+                    this.addDelegate(org.tensorflow.lite.gpu.GpuDelegate(delegateOptions))
+                }
+                catch (e: Exception)
+                {
+                    this.setNumThreads(4)
+                }
+                // if the device has a supported GPU, add the GPU delegate
+
+            } else {
+                // if the GPU is not supported, run on 4 threads
+                this.setNumThreads(4)
+            }
+        }
+//        options.setNumThreads(4)
+
+        try {
+            interpreter = Interpreter(model, options)
+        } catch (e: Exception) {
+            throw RuntimeException(e)
+        }
 
         val inputShape = interpreter?.getInputTensor(0)?.shape() ?: return
         val outputShape = interpreter?.getOutputTensor(0)?.shape() ?: return
@@ -183,7 +215,7 @@ class Detector(
         private const val INPUT_STANDARD_DEVIATION = 255f
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
         private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.75F
+        private const val CONFIDENCE_THRESHOLD = 0.7F
         private const val IOU_THRESHOLD = 0.5F
     }
 }
