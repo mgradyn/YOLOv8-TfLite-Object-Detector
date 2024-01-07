@@ -3,35 +3,35 @@ package com.surendramaran.yolov8tflite
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
 import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
-import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.surendramaran.yolov8tflite.Constants.LABELS_PATH
 import com.surendramaran.yolov8tflite.Constants.MODEL_PATH
 import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private lateinit var binding: ActivityMainBinding
-    private val isFrontCamera = false
+    private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-    private var preview: Preview? = null
-    private var imageAnalyzer: ImageAnalysis? = null
-    private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private lateinit var detector: Detector
-
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,91 +41,92 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
         detector = Detector(baseContext, MODEL_PATH, LABELS_PATH, this)
         detector.setup()
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
+        setupCamera()
+    }
+
+    private fun setupCamera() {
         if (allPermissionsGranted()) {
             startCamera()
         } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
         }
-
-        cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
-            cameraProvider  = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
             bindCameraUseCases()
         }, ContextCompat.getMainExecutor(this))
     }
 
     private fun bindCameraUseCases() {
-        val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
+        val cameraProvider = cameraProvider ?: return
 
         val rotation = binding.viewFinder.display.rotation
-
-        val cameraSelector = CameraSelector
-            .Builder()
-            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-            .build()
-
-        preview =  Preview.Builder()
+        val preview = Preview.Builder()
             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setTargetRotation(rotation)
             .build()
+            .also { it.setSurfaceProvider(binding.viewFinder.surfaceProvider) }
 
-        imageAnalyzer = ImageAnalysis.Builder()
+        val imageAnalyzer = ImageAnalysis.Builder()
             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setTargetRotation(binding.viewFinder.display.rotation)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+            .setTargetRotation(rotation)
             .build()
-
-        imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
-            val bitmapBuffer =
-                Bitmap.createBitmap(
-                    imageProxy.width,
-                    imageProxy.height,
-                    Bitmap.Config.ARGB_8888
-                )
-            imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
-            imageProxy.close()
-
-            val matrix = Matrix().apply {
-                postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-                if (isFrontCamera) {
-                    postScale(
-                        -1f,
-                        1f,
-                        imageProxy.width.toFloat(),
-                        imageProxy.height.toFloat()
-                    )
-                }
-            }
-
-            val rotatedBitmap = Bitmap.createBitmap(
-                bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,
-                matrix, true
-            )
-
-            detector.detect(rotatedBitmap)
-        }
+            .also { it.setAnalyzer(cameraExecutor, ::analyzeImage) }
 
         cameraProvider.unbindAll()
-
         try {
-            camera = cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                preview,
-                imageAnalyzer
-            )
-
-            preview?.setSurfaceProvider(binding.viewFinder.surfaceProvider)
-        } catch(exc: Exception) {
+            cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+        } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
+    }
+
+    private fun analyzeImage(imageProxy: ImageProxy) {
+        val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+        val bitmap = imageProxy.toBitmap() // Convert ImageProxy to Bitmap
+
+        val rotatedBitmap = if (rotationDegrees != 0) {
+            rotateBitmap(bitmap, rotationDegrees)
+        } else {
+            bitmap
+        }
+
+        detector.detect(rotatedBitmap)
+
+        imageProxy.close()
+    }
+
+    private fun ImageProxy.toBitmap(): Bitmap {
+        val yBuffer = planes[0].buffer // Y
+        val uBuffer = planes[1].buffer // U
+        val vBuffer = planes[2].buffer // V
+
+        val ySize = yBuffer.remaining()
+        val uSize = uBuffer.remaining()
+        val vSize = vBuffer.remaining()
+
+        val nv21 = ByteArray(ySize + uSize + vSize)
+
+        yBuffer.get(nv21, 0, ySize)
+        vBuffer.get(nv21, ySize, vSize)
+        uBuffer.get(nv21, ySize + vSize, uSize)
+
+        val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
+        val out = ByteArrayOutputStream()
+        yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 100, out)
+        val imageBytes = out.toByteArray()
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    }
+
+    private fun rotateBitmap(bitmap: Bitmap, degrees: Int): Bitmap {
+        val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -155,9 +156,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     companion object {
         private const val TAG = "Camera"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = mutableListOf (
-            Manifest.permission.CAMERA
-        ).toTypedArray()
+        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
     override fun onEmptyDetect() {
