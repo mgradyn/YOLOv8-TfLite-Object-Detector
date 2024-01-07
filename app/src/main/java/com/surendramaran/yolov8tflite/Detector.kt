@@ -3,11 +3,12 @@ package com.surendramaran.yolov8tflite
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.util.Log
+import com.google.android.gms.tflite.gpu.support.TfLiteGpu
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.InterpreterApi
 import org.tensorflow.lite.gpu.GpuDelegateFactory
-import org.tensorflow.lite.gpu.GpuDelegate
-import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
 import org.tensorflow.lite.support.common.ops.NormalizeOp
@@ -16,7 +17,6 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStream
 import java.io.InputStreamReader
 
 class Detector(
@@ -26,7 +26,7 @@ class Detector(
     private val detectorListener: DetectorListener
 ) {
 
-    private var interpreter: Interpreter? = null
+    private var interpreter: InterpreterApi? = null
     private var labels = mutableListOf<String>()
 
     private var tensorWidth = 0
@@ -40,64 +40,57 @@ class Detector(
         .build()
 
     fun setup() {
-        val model = FileUtil.loadMappedFile(context, modelPath)
-        val options = Interpreter.Options()
-
-//        var nnApiDelegate: NnApiDelegate? = null
-
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//            nnApiDelegate = NnApiDelegate()
-//            options.addDelegate(nnApiDelegate)
-
-        val compatList = CompatibilityList()
-
-        options.apply{
-            if(compatList.isDelegateSupportedOnThisDevice){
-                try {
-                    val delegateOptions = compatList.bestOptionsForThisDevice
-                    this.addDelegate(org.tensorflow.lite.gpu.GpuDelegate(delegateOptions))
-                }
-                catch (e: Exception)
-                {
-                    this.setNumThreads(4)
-                }
-                // if the device has a supported GPU, add the GPU delegate
-
-            } else {
-                // if the GPU is not supported, run on 4 threads
-                this.setNumThreads(4)
-            }
-        }
-//        options.setNumThreads(4)
-
         try {
-            interpreter = Interpreter(model, options)
+            val model = FileUtil.loadMappedFile(context, modelPath)
+            val options = Interpreter.Options()
+
+            TfLiteGpu.isGpuDelegateAvailable(context)
+                .addOnSuccessListener { useGpu ->
+                    options.apply {
+                        setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY)
+                        setNumThreads(4)
+                        if (useGpu) addDelegateFactory(GpuDelegateFactory())
+                    }
+
+                    try {
+                        interpreter = Interpreter(model, options)
+                        initializeInterpreter()
+                        loadLabels()
+                    } catch (e: Exception) {
+                        Log.e("InterpreterError", "Error creating TensorFlow Lite interpreter: ${e.message}")
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("GpuDelegateError", "Error checking GPU delegate availability: ${e.message}")
+                }
         } catch (e: Exception) {
-            throw RuntimeException(e)
+            Log.e("SetupError", "Error setting up TensorFlow Lite: ${e.message}")
         }
+    }
+    private fun initializeInterpreter() {
+        interpreter?.let {
+            val inputShape = it.getInputTensor(0).shape()
+            val outputShape = it.getOutputTensor(0).shape()
 
-        val inputShape = interpreter?.getInputTensor(0)?.shape() ?: return
-        val outputShape = interpreter?.getOutputTensor(0)?.shape() ?: return
-
-        tensorWidth = inputShape[1]
-        tensorHeight = inputShape[2]
-        numChannel = outputShape[1]
-        numElements = outputShape[2]
-
+            tensorWidth = inputShape[1]
+            tensorHeight = inputShape[2]
+            numChannel = outputShape[1]
+            numElements = outputShape[2]
+        }
+    }
+    private fun loadLabels() {
         try {
-            val inputStream: InputStream = context.assets.open(labelPath)
-            val reader = BufferedReader(InputStreamReader(inputStream))
-
-            var line: String? = reader.readLine()
-            while (line != null && line != "") {
-                labels.add(line)
-                line = reader.readLine()
+            context.assets.open(labelPath).use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    var line = reader.readLine()
+                    while (!line.isNullOrEmpty()) {
+                        labels.add(line)
+                        line = reader.readLine()
+                    }
+                }
             }
-
-            reader.close()
-            inputStream.close()
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e("LabelLoadError", "Error loading labels: ${e.message}")
         }
     }
 

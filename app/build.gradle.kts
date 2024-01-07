@@ -49,15 +49,19 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    val cameraxVersion = "1.4.0-alpha03"
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-core:${cameraxVersion}")
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")
 
-    implementation("org.tensorflow:tensorflow-lite:2.10.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.2")
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.2")
-    implementation("org.tensorflow:tensorflow-lite-gpu-api:2.10.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu-api:2.12.0")
     implementation("org.tensorflow:tensorflow-lite-gpu:2.10.0")
-    implementation("org.tensorflow:tensorflow-lite-api:2.10.0")
+    implementation("org.tensorflow:tensorflow-lite-api:2.14.0")
+
+    implementation("com.google.android.gms:play-services-tflite-java:16.1.0")
+    implementation("com.google.android.gms:play-services-tflite-gpu:16.2.0")
 }
