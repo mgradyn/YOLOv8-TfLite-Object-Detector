@@ -47,8 +47,8 @@ class Detector(
             TfLiteGpu.isGpuDelegateAvailable(context)
                 .addOnSuccessListener { useGpu ->
                     options.apply {
-                        setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY)
-                        setNumThreads(4)
+                        runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
+                        numThreads = 4
                         if (useGpu) addDelegateFactory(GpuDelegateFactory())
                     }
 
@@ -101,16 +101,13 @@ class Detector(
 
     fun detect(frame: Bitmap) {
         interpreter ?: return
-        if (tensorWidth == 0) return
-        if (tensorHeight == 0) return
-        if (numChannel == 0) return
-        if (numElements == 0) return
+        if (tensorWidth == 0 || tensorHeight == 0 || numChannel == 0 || numElements == 0) return
 
         var inferenceTime = SystemClock.uptimeMillis()
 
         val resizedBitmap = Bitmap.createScaledBitmap(frame, tensorWidth, tensorHeight, false)
 
-        val tensorImage = TensorImage(DataType.FLOAT32)
+        val tensorImage = TensorImage(INPUT_IMAGE_TYPE)
         tensorImage.load(resizedBitmap)
         val processedImage = imageProcessor.process(tensorImage)
         val imageBuffer = processedImage.buffer
@@ -118,73 +115,49 @@ class Detector(
         val output = TensorBuffer.createFixedSize(intArrayOf(1 , numChannel, numElements), OUTPUT_IMAGE_TYPE)
         interpreter?.run(imageBuffer, output.buffer)
 
-        val bestBoxes = bestBox(output.floatArray)
-        if (bestBoxes == null) {
-            detectorListener.onEmptyDetect()
-            return
-        }
-
-        inferenceTime = SystemClock.uptimeMillis() - inferenceTime
-        detectorListener.onDetect(bestBoxes, inferenceTime)
+        bestBox(output.floatArray)?.let { bestBoxes ->
+            detectorListener.onDetect(bestBoxes, SystemClock.uptimeMillis() - inferenceTime)
+        } ?: detectorListener.onEmptyDetect()
     }
 
-    private fun bestBox(array: FloatArray) : List<BoundingBox>? {
-
-        val boundingBoxes = mutableListOf<BoundingBox>()
-        for (c in 0 until numElements) {
+    private fun bestBox(array: FloatArray): List<BoundingBox>? {
+        val boundingBoxes = (0 until numElements).mapNotNull { c ->
             val confidences = (4 until numChannel).map { array[c + numElements * it] }
-            val cnf = confidences.max()
-            if (cnf > CONFIDENCE_THRESHOLD) {
-                val cls = confidences.indexOf(cnf)
-                val clsName = labels[cls]
-                val cx = array[c] // 0
-                val cy = array[c + numElements] // 1
-                val w = array[c + numElements * 2]
-                val h = array[c + numElements * 3]
-                val x1 = cx - (w/2F)
-                val y1 = cy - (h/2F)
-                val x2 = cx + (w/2F)
-                val y2 = cy + (h/2F)
-                if (x1 < 0F || x1 > 1F) continue
-                if (y1 < 0F || y1 > 1F) continue
-                if (x2 < 0F || x2 > 1F) continue
-                if (y2 < 0F || y2 > 1F) continue
+            val cnf = confidences.maxOrNull() ?: return@mapNotNull null
+            if (cnf <= CONFIDENCE_THRESHOLD) return@mapNotNull null
 
-                boundingBoxes.add(
-                    BoundingBox(
-                        x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-                        cx = cx, cy = cy, w = w, h = h,
-                        cnf = cnf, cls = cls, clsName = clsName
-                    )
-                )
-            }
+            val cls = confidences.indexOf(cnf)
+            createBoundingBox(array, c, cls, cnf)
         }
 
-        if (boundingBoxes.isEmpty()) return null
-
-        return applyNMS(boundingBoxes)
+        return if (boundingBoxes.isNotEmpty()) applyNMS(boundingBoxes) else null
     }
 
-    private fun applyNMS(boxes: List<BoundingBox>) : MutableList<BoundingBox> {
-        val sortedBoxes = boxes.sortedByDescending { it.cnf }.toMutableList()
-        val selectedBoxes = mutableListOf<BoundingBox>()
+    private fun createBoundingBox(array: FloatArray, index: Int, classIndex: Int, confidence: Float): BoundingBox? {
+        val cx = array[index]
+        val cy = array[index + numElements]
+        val w = array[index + numElements * 2]
+        val h = array[index + numElements * 3]
+        val x1 = cx - w / 2
+        val y1 = cy - h / 2
+        val x2 = cx + w / 2
+        val y2 = cy + h / 2
 
-        while(sortedBoxes.isNotEmpty()) {
-            val first = sortedBoxes.first()
-            selectedBoxes.add(first)
-            sortedBoxes.remove(first)
-
-            val iterator = sortedBoxes.iterator()
-            while (iterator.hasNext()) {
-                val nextBox = iterator.next()
-                val iou = calculateIoU(first, nextBox)
-                if (iou >= IOU_THRESHOLD) {
-                    iterator.remove()
-                }
-            }
+        // Ensure that the coordinates are within the valid range
+        if (x1 < 0f || y1 < 0f || x2 < 0f || y2 < 0f || x1 > 1f || y1 > 1f || x2 > 1f || y2 > 1f) {
+            return null
         }
 
-        return selectedBoxes
+        return BoundingBox(x1, y1, x2, y2, cx, cy, w, h, confidence, classIndex, labels.getOrElse(classIndex) { "Unknown" })
+    }
+
+    private fun applyNMS(boxes: List<BoundingBox>) : List<BoundingBox> {
+        return boxes.sortedByDescending { it.cnf }.fold(mutableListOf()) { selectedBoxes, box ->
+            if (selectedBoxes.none { calculateIoU(it, box) >= IOU_THRESHOLD }) {
+                selectedBoxes.add(box)
+            }
+            selectedBoxes
+        }
     }
 
     private fun calculateIoU(box1: BoundingBox, box2: BoundingBox): Float {
