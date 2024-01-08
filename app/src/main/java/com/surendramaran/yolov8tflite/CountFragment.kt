@@ -8,7 +8,7 @@ import android.view.ViewGroup
 
 class CountFragment : Fragment() {
 
-    private lateinit var classifications: MutableList<Classification>
+    private lateinit var counts: MutableList<Count>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -16,13 +16,13 @@ class CountFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_count, container, false)
 
-        // Initialize classifications
-        classifications = mutableListOf(
-            Classification("flower", 5),
-            Classification("unripe", 2),
-            Classification("underripe", 3),
-            Classification("ripe", 4),
-            Classification("abnormal", 1)
+        // Initialize counts
+        counts = mutableListOf(
+            Count("flower", 0),
+            Count("unripe", 0),
+            Count("underripe", 0),
+            Count("ripe", 0),
+            Count("abnormal", 0)
         )
 
         // TODO: Use classifications to update the UI of the fragment

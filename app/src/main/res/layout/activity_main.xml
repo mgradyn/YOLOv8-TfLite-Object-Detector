@@ -49,7 +49,7 @@
         app:layout_constraintVertical_bias="0.418" />
 
 <!--    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--        android:id="@+id/countFragment"-->
+<!--        android:id="@+id/fragment_count"-->
 <!--        android:layout_width="match_parent"-->
 <!--        android:layout_height="match_parent" />-->
 
