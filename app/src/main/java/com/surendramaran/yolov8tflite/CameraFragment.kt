@@ -23,6 +23,10 @@ import androidx.fragment.app.Fragment
 import com.surendramaran.yolov8tflite.Constants.LABELS_PATH
 import com.surendramaran.yolov8tflite.Constants.MODEL_PATH
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -39,6 +43,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private lateinit var detector: Detector
     private lateinit var cameraExecutor: ExecutorService
 
+    private val uiScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -142,7 +147,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
-        requireActivity().runOnUiThread {
+        uiScope.launch {
             binding.inferenceTime.text = "${inferenceTime}ms"
             binding.overlay.apply {
                 setResults(boundingBoxes)
@@ -162,6 +167,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     override fun onDestroyView() {
         super.onDestroyView()
+        uiScope.cancel()
         _binding = null
         detector.clear()
         cameraExecutor.shutdown()

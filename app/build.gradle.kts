@@ -68,4 +68,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-tflite-gpu:16.2.0")
 
     implementation("androidx.fragment:fragment-ktx:latest_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 }
