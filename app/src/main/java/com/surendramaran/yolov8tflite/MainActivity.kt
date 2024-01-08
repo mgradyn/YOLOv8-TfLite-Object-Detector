@@ -25,6 +25,9 @@ import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+//import androidx.fragment.app.commit
+//import androidx.fragment.app.add
+
 
 class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private lateinit var binding: ActivityMainBinding
@@ -44,6 +47,13 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         setupCamera()
+
+//        if (savedInstanceState == null) {
+//             supportFragmentManager.commit{
+//                setReorderingAllowed(true)
+//                add<CountFragment>(R.id.countFragment)
+//            }
+//        }
     }
 
     private fun setupCamera() {
