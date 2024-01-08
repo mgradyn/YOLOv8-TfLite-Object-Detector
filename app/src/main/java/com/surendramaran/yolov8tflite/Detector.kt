@@ -49,7 +49,7 @@ class Detector(
                     options.apply {
                         runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
                         numThreads = 4
-                        if (useGpu) addDelegateFactory(GpuDelegateFactory())
+                        if (!useGpu) addDelegateFactory(GpuDelegateFactory())
                     }
 
                     try {

@@ -1,53 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/camera_container"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/black"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black">
+    android:layout_height="match_parent">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/view_finder"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="3:4"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:scaleType="fillStart">
-
-        <com.surendramaran.yolov8tflite.OverlayView
-            android:id="@+id/overlay"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:translationZ="5dp" />
-
-    </androidx.camera.view.PreviewView>
-
-    <TextView
-        android:id="@+id/inferenceTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="32dp"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="100ms" />
-
-    <Button
-        android:id="@+id/countBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save Count"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view_finder"
-        app:layout_constraintVertical_bias="0.418" />
-
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_container"
+            android:name="com.surendramaran.yolov8tflite.CameraFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:keepScreenOn="true"
+            tools:layout="@layout/fragment_camera" />
+    </RelativeLayout>
 <!--    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
 <!--        android:id="@+id/fragment_count"-->
 <!--        android:layout_width="match_parent"-->
@@ -57,4 +29,4 @@
     <!--        android:id="@+id/ivTop"-->
     <!--        android:layout_width="match_parent"-->
     <!--        android:layout_height="match_parent"/>-->
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
