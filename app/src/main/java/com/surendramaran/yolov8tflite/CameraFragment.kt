@@ -10,7 +10,9 @@ import android.graphics.Rect
 import android.graphics.YuvImage
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -20,8 +22,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.surendramaran.yolov8tflite.Constants.LABELS_PATH
-import com.surendramaran.yolov8tflite.Constants.MODEL_PATH
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,8 +35,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
-    private var _binding: FragmentCameraBinding? = null
-    private val binding get() = _binding!!
+    private var _fragmentCameraBinding: FragmentCameraBinding? = null
+
+    private val fragmentCameraBinding
+        get() = _fragmentCameraBinding!!
 
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var cameraProvider: ProcessCameraProvider? = null
@@ -45,18 +47,142 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
+    override fun onResume() {
+        super.onResume()
+        if (allPermissionsGranted()){
+            startCamera()
+        } else {
+            requestPermissionLauncher.launch(CameraFragment.REQUIRED_PERMISSIONS)
+        }
+    }
+
+    override fun onDestroyView() {
+        _fragmentCameraBinding = null
+        super.onDestroyView()
+        uiScope.cancel()
+        detector.clear()
+        cameraExecutor.shutdown()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this)
-        detector.setup()
-        cameraExecutor = Executors.newSingleThreadExecutor()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
+
+        return fragmentCameraBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentCameraBinding.bind(view)
-//        binding.overlay.bringToFront()
-        setupCamera()
+
+        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
+        detector.setup()
+
+        cameraExecutor = Executors.newSingleThreadExecutor()
+
+        fragmentCameraBinding.viewFinder.post {
+            setupCamera()
+        }
+
+        initBottomSheetControls()
+    }
+    private fun initBottomSheetControls() {
+        // When clicked, lower detection score threshold floor
+//        fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
+//            if (objectDetectorHelper.threshold >= 0.1) {
+//                objectDetectorHelper.threshold -= 0.1f
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, raise detection score threshold floor
+//        fragmentCameraBinding.bottomSheetLayout.thresholdPlus.setOnClickListener {
+//            if (objectDetectorHelper.threshold <= 0.8) {
+//                objectDetectorHelper.threshold += 0.1f
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, reduce the number of objects that can be detected at a time
+//        fragmentCameraBinding.bottomSheetLayout.maxResultsMinus.setOnClickListener {
+//            if (objectDetectorHelper.maxResults > 1) {
+//                objectDetectorHelper.maxResults--
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, increase the number of objects that can be detected at a time
+//        fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
+//            if (objectDetectorHelper.maxResults < 5) {
+//                objectDetectorHelper.maxResults++
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, decrease the number of threads used for detection
+//        fragmentCameraBinding.bottomSheetLayout.threadsMinus.setOnClickListener {
+//            if (objectDetectorHelper.numThreads > 1) {
+//                objectDetectorHelper.numThreads--
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, increase the number of threads used for detection
+//        fragmentCameraBinding.bottomSheetLayout.threadsPlus.setOnClickListener {
+//            if (objectDetectorHelper.numThreads < 4) {
+//                objectDetectorHelper.numThreads++
+//                updateControlsUi()
+//            }
+//        }
+//
+//        // When clicked, change the underlying hardware used for inference. Current options are CPU
+//        // GPU, and NNAPI
+//        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
+//        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
+//            object : AdapterView.OnItemSelectedListener {
+//                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+//                    objectDetectorHelper.currentDelegate = p2
+//                    updateControlsUi()
+//                }
+//
+//                override fun onNothingSelected(p0: AdapterView<*>?) {
+//                    /* no op */
+//                }
+//            }
+//
+//        // When clicked, change the underlying model used for object detection
+//        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(0, false)
+//        fragmentCameraBinding.bottomSheetLayout.spinnerModel.onItemSelectedListener =
+//            object : AdapterView.OnItemSelectedListener {
+//                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+//                    objectDetectorHelper.currentModel = p2
+//                    updateControlsUi()
+//                }
+//
+//                override fun onNothingSelected(p0: AdapterView<*>?) {
+//                    /* no op */
+//                }
+//            }
+    }
+
+    private fun updateControlsUi() {
+//        fragmentCameraBinding.bottomSheetLayout.maxResultsValue.text =
+//            objectDetectorHelper.maxResults.toString()
+//        fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
+//            String.format("%.2f", objectDetectorHelper.threshold)
+//        fragmentCameraBinding.bottomSheetLayout.threadsValue.text =
+//            objectDetectorHelper.numThreads.toString()
+//
+//        // Needs to be cleared instead of reinitialized because the GPU
+//        // delegate needs to be initialized on the thread using it when applicable
+//        objectDetectorHelper.clearObjectDetector()
+        fragmentCameraBinding.overlay.clear()
     }
 
     private fun setupCamera() {
@@ -78,12 +204,12 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private fun bindCameraUseCases() {
         val cameraProvider = cameraProvider ?: return
 
-        val rotation = binding.viewFinder.display.rotation
+        val rotation = fragmentCameraBinding.viewFinder.display.rotation
         val preview = Preview.Builder()
             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setTargetRotation(rotation)
             .build()
-            .also { it.setSurfaceProvider(binding.viewFinder.surfaceProvider) }
+            .also { it.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider) }
 
         val imageAnalyzer = ImageAnalysis.Builder()
             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
@@ -143,13 +269,13 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
 
     override fun onEmptyDetect() {
-        binding.overlay.invalidate()
+        fragmentCameraBinding.overlay.invalidate()
     }
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         uiScope.launch {
-            binding.inferenceTime.text = "${inferenceTime}ms"
-            binding.overlay.apply {
+            fragmentCameraBinding.inferenceTime.text = "${inferenceTime}ms"
+            fragmentCameraBinding.overlay.apply {
                 setResults(boundingBoxes)
                 invalidate()
             }
@@ -165,13 +291,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        uiScope.cancel()
-        _binding = null
-        detector.clear()
-        cameraExecutor.shutdown()
-    }
+
 
     private fun aspectRatio(width: Int, height: Int): Int {
         val previewRatio = max(width, height).toDouble() / min(width, height)
@@ -181,14 +301,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         return AspectRatio.RATIO_16_9
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (allPermissionsGranted()){
-            startCamera()
-        } else {
-            requestPermissionLauncher.launch(CameraFragment.REQUIRED_PERMISSIONS)
-        }
-    }
+
 
     companion object {
         private const val TAG = "Camera"
