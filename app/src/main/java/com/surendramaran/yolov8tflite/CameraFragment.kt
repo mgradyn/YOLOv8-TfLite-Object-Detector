@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -60,6 +61,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         _fragmentCameraBinding = null
         super.onDestroyView()
         uiScope.cancel()
+        detector.destroy()
         detector.clear()
         cameraExecutor.shutdown()
     }
@@ -94,94 +96,97 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
     private fun initBottomSheetControls() {
         // When clicked, lower detection score threshold floor
-//        fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
-//            if (objectDetectorHelper.threshold >= 0.1) {
-//                objectDetectorHelper.threshold -= 0.1f
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, raise detection score threshold floor
-//        fragmentCameraBinding.bottomSheetLayout.thresholdPlus.setOnClickListener {
-//            if (objectDetectorHelper.threshold <= 0.8) {
-//                objectDetectorHelper.threshold += 0.1f
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, reduce the number of objects that can be detected at a time
-//        fragmentCameraBinding.bottomSheetLayout.maxResultsMinus.setOnClickListener {
-//            if (objectDetectorHelper.maxResults > 1) {
-//                objectDetectorHelper.maxResults--
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, increase the number of objects that can be detected at a time
-//        fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
-//            if (objectDetectorHelper.maxResults < 5) {
-//                objectDetectorHelper.maxResults++
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, decrease the number of threads used for detection
-//        fragmentCameraBinding.bottomSheetLayout.threadsMinus.setOnClickListener {
-//            if (objectDetectorHelper.numThreads > 1) {
-//                objectDetectorHelper.numThreads--
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, increase the number of threads used for detection
-//        fragmentCameraBinding.bottomSheetLayout.threadsPlus.setOnClickListener {
-//            if (objectDetectorHelper.numThreads < 4) {
-//                objectDetectorHelper.numThreads++
-//                updateControlsUi()
-//            }
-//        }
-//
-//        // When clicked, change the underlying hardware used for inference. Current options are CPU
-//        // GPU, and NNAPI
-//        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
-//        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
-//            object : AdapterView.OnItemSelectedListener {
-//                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-//                    objectDetectorHelper.currentDelegate = p2
-//                    updateControlsUi()
-//                }
-//
-//                override fun onNothingSelected(p0: AdapterView<*>?) {
-//                    /* no op */
-//                }
-//            }
-//
-//        // When clicked, change the underlying model used for object detection
-//        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(0, false)
-//        fragmentCameraBinding.bottomSheetLayout.spinnerModel.onItemSelectedListener =
-//            object : AdapterView.OnItemSelectedListener {
-//                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-//                    objectDetectorHelper.currentModel = p2
-//                    updateControlsUi()
-//                }
-//
-//                override fun onNothingSelected(p0: AdapterView<*>?) {
-//                    /* no op */
-//                }
-//            }
+        fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
+            if (detector.confthreshold >= 0.1) {
+                detector.confthreshold -= 0.1f
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise detection score threshold floor
+        fragmentCameraBinding.bottomSheetLayout.thresholdPlus.setOnClickListener {
+            if (detector.confthreshold <= 0.8) {
+                detector.confthreshold += 0.1f
+                updateControlsUi()
+            }
+        }
+
+        fragmentCameraBinding.bottomSheetLayout.thresholdIouMinus.setOnClickListener {
+            if (detector.iouThreshold >= 0.1) {
+                detector.iouThreshold -= 0.1f
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise detection score threshold floor
+        fragmentCameraBinding.bottomSheetLayout.thresholdIouPlus.setOnClickListener {
+            if (detector.iouThreshold <= 0.8) {
+                detector.iouThreshold += 0.1f
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, reduce the number of objects that can be detected at a time
+        fragmentCameraBinding.bottomSheetLayout.maxResultsMinus.setOnClickListener {
+            if (detector.maxResults > 1) {
+                detector.maxResults--
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, increase the number of objects that can be detected at a time
+        fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
+            if (detector.maxResults < 5) {
+                detector.maxResults++
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, decrease the number of threads used for detection
+        fragmentCameraBinding.bottomSheetLayout.threadsMinus.setOnClickListener {
+            if (detector.numThreadsUsed > 1) {
+                detector.numThreadsUsed--
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, increase the number of threads used for detection
+        fragmentCameraBinding.bottomSheetLayout.threadsPlus.setOnClickListener {
+            if (detector.numThreadsUsed < 4) {
+                detector.numThreadsUsed++
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, change the underlying hardware used for inference. Current options are CPU
+        // and GPU
+        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
+        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                    detector.utilizeGPU = p2 == 1
+                    updateControlsUi()
+                }
+
+                override fun onNothingSelected(p0: AdapterView<*>?) {
+                    /* no op */
+                }
+            }
     }
 
     private fun updateControlsUi() {
-//        fragmentCameraBinding.bottomSheetLayout.maxResultsValue.text =
-//            objectDetectorHelper.maxResults.toString()
-//        fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
-//            String.format("%.2f", objectDetectorHelper.threshold)
-//        fragmentCameraBinding.bottomSheetLayout.threadsValue.text =
-//            objectDetectorHelper.numThreads.toString()
-//
-//        // Needs to be cleared instead of reinitialized because the GPU
-//        // delegate needs to be initialized on the thread using it when applicable
-//        objectDetectorHelper.clearObjectDetector()
+        fragmentCameraBinding.bottomSheetLayout.maxResultsValue.text =
+            detector.maxResults.toString()
+        fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
+            String.format("%.2f", detector.confthreshold)
+        fragmentCameraBinding.bottomSheetLayout.thresholdIouValue.text =
+            String.format("%.2f", detector.iouThreshold)
+        fragmentCameraBinding.bottomSheetLayout.threadsValue.text =
+            detector.numThreadsUsed.toString()
+
+        // Needs to be cleared instead of reinitialized because the GPU
+        // delegate needs to be initialized on the thread using it when applicable
+        detector.clear()
         fragmentCameraBinding.overlay.clear()
     }
 
@@ -235,7 +240,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         } else {
             bitmap
         }
-
         detector.detect(rotatedBitmap)
 
         imageProxy.close()
@@ -290,18 +294,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
     }
-
-
-
-    private fun aspectRatio(width: Int, height: Int): Int {
-        val previewRatio = max(width, height).toDouble() / min(width, height)
-        if (abs(previewRatio - 4.0 / 3.0) <= abs(previewRatio - 16.0 / 9.0)) {
-            return AspectRatio.RATIO_4_3
-        }
-        return AspectRatio.RATIO_16_9
-    }
-
-
 
     companion object {
         private const val TAG = "Camera"

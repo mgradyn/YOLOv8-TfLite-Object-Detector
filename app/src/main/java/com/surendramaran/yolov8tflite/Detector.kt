@@ -23,7 +23,12 @@ class Detector(
     private val context: Context,
     private val modelPath: String,
     private val labelPath: String,
-    private val detectorListener: DetectorListener
+    private val detectorListener: DetectorListener,
+    var confthreshold: Float = 0.5f,
+    var iouThreshold: Float = 0.5F,
+    var numThreadsUsed: Int = 4,
+    var maxResults: Int = 10,
+    var utilizeGPU: Boolean = false,
 ) {
 
     private var interpreter: InterpreterApi? = null
@@ -48,8 +53,8 @@ class Detector(
                 .addOnSuccessListener { useGpu ->
                     options.apply {
                         runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
-                        numThreads = 4
-                        if (useGpu) addDelegateFactory(GpuDelegateFactory())
+                        numThreads = numThreadsUsed
+                        if (utilizeGPU && useGpu) addDelegateFactory(GpuDelegateFactory())
                     }
 
                     try {
@@ -95,12 +100,19 @@ class Detector(
     }
 
     fun clear() {
-        interpreter?.close()
         interpreter = null
     }
 
+    fun destroy() {
+        interpreter?.close()
+    }
+
     fun detect(frame: Bitmap) {
-        interpreter ?: return
+        if (interpreter == null)
+        {
+            this.setup()
+            return
+        }
         if (tensorWidth == 0 || tensorHeight == 0 || numChannel == 0 || numElements == 0) return
 
         var inferenceTime = SystemClock.uptimeMillis()
@@ -121,17 +133,24 @@ class Detector(
     }
 
     private fun bestBox(array: FloatArray): List<BoundingBox>? {
-        val boundingBoxes = (0 until numElements).mapNotNull { c ->
+        val boundingBoxes = mutableListOf<BoundingBox>()
+
+        for (c in 0 until numElements) {
             val confidences = (4 until numChannel).map { array[c + numElements * it] }
-            val cnf = confidences.maxOrNull() ?: return@mapNotNull null
-            if (cnf <= CONFIDENCE_THRESHOLD) return@mapNotNull null
+            val cnf = confidences.maxOrNull() ?: continue
+            if (cnf <= confthreshold) continue
 
             val cls = confidences.indexOf(cnf)
-            createBoundingBox(array, c, cls, cnf)
+            val boundingBox = createBoundingBox(array, c, cls, cnf)
+            if (boundingBox != null && boundingBoxes.none { calculateIoU(it, boundingBox) >= iouThreshold }) {
+                boundingBoxes.add(boundingBox)
+                if (boundingBoxes.size == maxResults) break
+            }
         }
 
-        return if (boundingBoxes.isNotEmpty()) applyNMS(boundingBoxes) else null
+        return boundingBoxes.ifEmpty { null }
     }
+
 
     private fun createBoundingBox(array: FloatArray, index: Int, classIndex: Int, confidence: Float): BoundingBox? {
         val cx = array[index]
@@ -148,15 +167,6 @@ class Detector(
         }
 
         return BoundingBox(x1, y1, x2, y2, cx, cy, w, h, confidence, classIndex, labels.getOrElse(classIndex) { "Unknown" })
-    }
-
-    private fun applyNMS(boxes: List<BoundingBox>) : List<BoundingBox> {
-        return boxes.sortedByDescending { it.cnf }.fold(mutableListOf()) { selectedBoxes, box ->
-            if (selectedBoxes.none { calculateIoU(it, box) >= IOU_THRESHOLD }) {
-                selectedBoxes.add(box)
-            }
-            selectedBoxes
-        }
     }
 
     private fun calculateIoU(box1: BoundingBox, box2: BoundingBox): Float {
@@ -176,6 +186,8 @@ class Detector(
     }
 
     companion object {
+//        const val DELEGATE_CPU = 0
+//        const val DELEGATE_GPU = 1
         private const val INPUT_MEAN = 0f
         private const val INPUT_STANDARD_DEVIATION = 255f
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
