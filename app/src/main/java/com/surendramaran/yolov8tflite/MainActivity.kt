@@ -11,5 +11,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
+
+        val fragmentManager = supportFragmentManager
+
+        val transaction = fragmentManager.beginTransaction()
+        val countFragment = CountFragment.getInstance()
+        transaction.add(R.id.fragment_count_container, countFragment)
+
+        transaction.commit()
     }
 }
