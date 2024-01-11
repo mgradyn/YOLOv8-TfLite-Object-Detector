@@ -83,16 +83,19 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
-        detector.setup()
+        val countFragment = CountFragment.getInstance()
+        if (countFragment != null) {
+            detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this, countFragment)
+            detector.setup()
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
+            cameraExecutor = Executors.newSingleThreadExecutor()
 
-        fragmentCameraBinding.viewFinder.post {
-            setupCamera()
+            fragmentCameraBinding.viewFinder.post {
+                setupCamera()
+            }
+
+            initBottomSheetControls()
         }
-
-        initBottomSheetControls()
     }
     private fun initBottomSheetControls() {
         // When clicked, lower detection score threshold floor

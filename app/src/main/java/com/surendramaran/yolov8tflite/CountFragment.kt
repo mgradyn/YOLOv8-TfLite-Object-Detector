@@ -1,6 +1,7 @@
 package com.surendramaran.yolov8tflite
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.TextView
 
-class CountFragment : Fragment() {
+class CountFragment : Fragment(), Detector.CountListener {
 
     private lateinit var counts: MutableList<Count>
     private lateinit var countViews: MutableMap<String, TextView>
@@ -53,14 +54,31 @@ class CountFragment : Fragment() {
         return view
     }
 
-    fun updateCount(name: String, newCount: Int) {
-        // Find the Count object and update its value
-        val countToUpdate = counts.find { it.name == name }
-        countToUpdate?.count = newCount
+    private fun updateCount(newCounts: List<Count>) {
+        requireActivity().runOnUiThread {
+            for (item in newCounts) {
+                val countToUpdate = counts.find { it.name == item.name }
+                countToUpdate?.count = item.count
 
-        // Find the corresponding TextView and update its text
-        val textViewToUpdate = countViews[name]
-        textViewToUpdate?.text = "$name: $newCount"
+                val textViewToUpdate = countViews[item.name]
+                textViewToUpdate?.text = "${item.name}: ${item.count}"
+                countViews[item.name] = textViewToUpdate ?: countViews[item.name]!!
+                counts = newCounts.toMutableList()
+            }
+
+            (view?.parent as? View)?.invalidate()
+        }
+    }
+
+    override fun onCountsUpdated(boundingBoxes: List<BoundingBox>) {
+        val newCounts = counts.map { Count(it.name, 0) }.toMutableList()
+
+        for (boundingBox in boundingBoxes) {
+            val count = newCounts.find { it.name == boundingBox.clsName }
+            count?.count = count?.count?.plus(1) ?: 0
+        }
+
+        updateCount(newCounts)
     }
 
     companion object {

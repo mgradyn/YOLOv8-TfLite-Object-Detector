@@ -24,6 +24,7 @@ class Detector(
     private val modelPath: String,
     private val labelPath: String,
     private val detectorListener: DetectorListener,
+    private val countListener: CountListener,
     var confthreshold: Float = 0.5f,
     var iouThreshold: Float = 0.5F,
     var numThreadsUsed: Int = 4,
@@ -129,6 +130,7 @@ class Detector(
 
         bestBox(output.floatArray)?.let { bestBoxes ->
             detectorListener.onDetect(bestBoxes, SystemClock.uptimeMillis() - inferenceTime)
+            countListener.onCountsUpdated(bestBoxes)
         } ?: detectorListener.onEmptyDetect()
     }
 
@@ -183,6 +185,10 @@ class Detector(
     interface DetectorListener {
         fun onEmptyDetect()
         fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long)
+    }
+
+    interface CountListener {
+        fun onCountsUpdated(boundingBoxes: List<BoundingBox>)
     }
 
     companion object {
