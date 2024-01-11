@@ -144,6 +144,7 @@ class Detector(
 
             val cls = confidences.indexOf(cnf)
             val boundingBox = createBoundingBox(array, c, cls, cnf)
+            if (boundingBox?.isValid() == false) continue
             if (boundingBox != null && boundingBoxes.none { calculateIoU(it, boundingBox) >= iouThreshold }) {
                 boundingBoxes.add(boundingBox)
                 if (boundingBoxes.size == maxResults) break
@@ -153,6 +154,10 @@ class Detector(
         return boundingBoxes.ifEmpty { null }
     }
 
+    private fun BoundingBox.isValid(): Boolean {
+        return !x1.isNaN() && !y1.isNaN() && !x2.isNaN() && !y2.isNaN() &&
+                !cx.isNaN() && !cy.isNaN() && !w.isNaN() && !h.isNaN()
+    }
 
     private fun createBoundingBox(array: FloatArray, index: Int, classIndex: Int, confidence: Float): BoundingBox? {
         val cx = array[index]
