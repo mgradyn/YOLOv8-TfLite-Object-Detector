@@ -70,4 +70,8 @@ dependencies {
 
     implementation("androidx.fragment:fragment-ktx:latest_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+
+    val nav_version_ktx = "2.1.0"
+    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version_ktx")
+    implementation("androidx.navigation:navigation-ui-ktx:$nav_version_ktx")
 }
