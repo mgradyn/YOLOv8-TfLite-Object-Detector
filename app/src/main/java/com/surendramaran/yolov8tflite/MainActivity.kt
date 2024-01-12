@@ -10,13 +10,12 @@ import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
-    private lateinit var countFragment: CountFragment
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
 
-        countFragment = CountFragment.getInstance()
+        val countFragment = CountFragment.getInstance()
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_count_container, countFragment)
             .commit()
