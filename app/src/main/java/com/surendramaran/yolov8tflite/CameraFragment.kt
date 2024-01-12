@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -94,6 +96,34 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 setupCamera()
             }
 
+            countFragment.setOnActivityCreatedCallback {
+                val countButton = countFragment.getCountButton()
+
+                if (countButton != null) {
+                    val bottomSheetBehavior = BottomSheetBehavior.from(fragmentCameraBinding.bottomSheetLayout.root)
+                    bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                        override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                            val buttonBottomY = countButton.y + countButton.height + countButton.paddingBottom
+                            val sheetTopY = bottomSheet.y
+
+                            val isButtonWithinSheet = buttonBottomY >= sheetTopY
+                            countButton.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
+                        }
+
+                        override fun onStateChanged(bottomSheet: View, newState: Int) {
+                            when (newState) {
+                                BottomSheetBehavior.STATE_COLLAPSED -> {
+                                    countButton.visibility = View.VISIBLE
+                                }
+                                BottomSheetBehavior.STATE_EXPANDED -> {
+                                    countButton.visibility = View.GONE
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+
             initBottomSheetControls()
         }
     }
@@ -139,7 +169,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
         // When clicked, increase the number of objects that can be detected at a time
         fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
-            if (detector.maxResults < 5) {
+            if (detector.maxResults < 10) {
                 detector.maxResults++
                 updateControlsUi()
             }

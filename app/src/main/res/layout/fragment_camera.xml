@@ -46,16 +46,16 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="100ms" />
 
-        <Button
-            android:id="@+id/countBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save Count"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view_finder"
-            app:layout_constraintVertical_bias="0.418" />
+<!--        <Button-->
+<!--            android:id="@+id/countBtn"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Save Count"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/view_finder"-->
+<!--            app:layout_constraintVertical_bias="0.418" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
     <include

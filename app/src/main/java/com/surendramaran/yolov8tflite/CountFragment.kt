@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
 
@@ -13,6 +14,25 @@ class CountFragment : Fragment(), Detector.CountListener {
 
     private lateinit var counts: MutableList<Count>
     private lateinit var countViews: MutableMap<String, TextView>
+    private var totalCount: MutableList<Count> = mutableListOf(
+        Count("flower", 0),
+        Count("unripe", 0),
+        Count("underripe", 0),
+        Count("ripe", 0),
+        Count("abnormal", 0)
+    )
+    private var countButton: Button? = null
+    private var onActivityCreatedCallback: (() -> Unit)? = null
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        onActivityCreatedCallback?.invoke()
+        onActivityCreatedCallback = null
+    }
+
+    fun setOnActivityCreatedCallback(callback: () -> Unit) {
+        onActivityCreatedCallback = callback
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,8 +70,15 @@ class CountFragment : Fragment(), Detector.CountListener {
 
             countViews[count.name] = textView
         }
-
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        countButton = view.findViewById(R.id.countBtn)
+        countButton?.setOnClickListener {
+            Log.d("CountFragment", "$counts")
+        }
     }
 
     private fun updateCount(newCounts: List<Count>) {
@@ -72,13 +99,28 @@ class CountFragment : Fragment(), Detector.CountListener {
 
     override fun onCountsUpdated(boundingBoxes: List<BoundingBox>) {
         val newCounts = counts.map { Count(it.name, 0) }.toMutableList()
-
         for (boundingBox in boundingBoxes) {
             val count = newCounts.find { it.name == boundingBox.clsName }
             count?.count = count?.count?.plus(1) ?: 0
         }
 
         updateCount(newCounts)
+    }
+
+    fun getCountButton(): Button? {
+        return countButton
+    }
+    fun resetTotalCount() {
+        totalCount = counts.map { Count(it.name, 0) }.toMutableList()
+    }
+
+    fun sumCounts() {
+        val newCounts = totalCount.map { Count(it.name, 0) }.toMutableList()
+        for (count in counts) {
+            val totalCount = newCounts.find { it.name == count.name }
+            totalCount?.count = totalCount?.count?.plus(count.count) ?: 0
+        }
+        totalCount = newCounts
     }
 
     companion object {

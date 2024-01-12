@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/counts_grid"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp"
-    android:columnCount="3"
-    android:rowCount="2"
-    android:alignmentMode="alignMargins"
-    android:useDefaultMargins="true" >
-    <!-- The GridLayout will be populated with TextViews dynamically -->
-</GridLayout>
+    android:layout_height="match_parent">
+
+    <GridLayout
+        android:id="@+id/counts_grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:columnCount="3"
+        android:rowCount="2"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true"
+        app:layout_anchorGravity="top|start">
+        <!-- The GridLayout will be populated with TextViews dynamically -->
+    </GridLayout>
+
+    <Button
+        android:id="@+id/countBtn"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="150dp"
+        android:background="@drawable/round_button_background"
+        android:text=""
+        app:layout_anchor="@id/counts_grid"
+        app:layout_anchorGravity="bottom|center_horizontal" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
