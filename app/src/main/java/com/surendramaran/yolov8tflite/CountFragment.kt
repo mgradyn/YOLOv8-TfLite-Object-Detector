@@ -8,7 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 
 class CountFragment : Fragment(), Detector.CountListener {
 
@@ -23,6 +27,7 @@ class CountFragment : Fragment(), Detector.CountListener {
     )
     private var countButton: Button? = null
     private var onActivityCreatedCallback: (() -> Unit)? = null
+    private lateinit var drawerLayout: DrawerLayout
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -49,12 +54,9 @@ class CountFragment : Fragment(), Detector.CountListener {
             Count("abnormal", 0)
         )
 
-        // Initialize the map to keep references to TextViews
         countViews = mutableMapOf()
-
         val gridLayout = view.findViewById<GridLayout>(R.id.counts_grid)
 
-        // Loop through the counts list and create TextViews
         for ((index, count) in counts.withIndex()) {
             val textView = TextView(context)
 
@@ -77,7 +79,8 @@ class CountFragment : Fragment(), Detector.CountListener {
         super.onViewCreated(view, savedInstanceState)
         countButton = view.findViewById(R.id.countBtn)
         countButton?.setOnClickListener {
-            Log.d("CountFragment", "$counts")
+            sumCounts()
+            Log.d("CountFragment", "Total Count: $totalCount")
         }
     }
 
@@ -93,7 +96,7 @@ class CountFragment : Fragment(), Detector.CountListener {
                 counts = newCounts.toMutableList()
             }
 
-            (view?.parent as? View)?.invalidate()
+            view?.invalidate()
         }
     }
 
@@ -114,11 +117,26 @@ class CountFragment : Fragment(), Detector.CountListener {
         totalCount = counts.map { Count(it.name, 0) }.toMutableList()
     }
 
-    fun sumCounts() {
-        val newCounts = totalCount.map { Count(it.name, 0) }.toMutableList()
+    fun clear() {
+        requireActivity().runOnUiThread {
+            counts = counts.map { Count(it.name, 0) }.toMutableList()
+            for (item in counts) {
+                val textViewToUpdate = countViews[item.name]
+                textViewToUpdate?.text = "${item.name}: 0"
+                countViews[item.name] = textViewToUpdate ?: countViews[item.name]!!
+            }
+            view?.invalidate()
+        }
+    }
+
+    private fun sumCounts() {
+        val newCounts = mutableListOf<Count>()
         for (count in counts) {
-            val totalCount = newCounts.find { it.name == count.name }
-            totalCount?.count = totalCount?.count?.plus(count.count) ?: 0
+            val totalCountItem = totalCount.find { it.name == count.name }
+            if (totalCountItem != null) {
+                totalCountItem.count += count.count
+                newCounts.add(totalCountItem)
+            }
         }
         totalCount = newCounts
     }

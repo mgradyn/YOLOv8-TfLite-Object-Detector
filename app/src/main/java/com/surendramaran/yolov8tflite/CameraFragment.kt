@@ -50,6 +50,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
+    private val countFragment = CountFragment.getInstance()
+
     override fun onResume() {
         super.onResume()
         if (allPermissionsGranted()){
@@ -84,48 +86,44 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this, countFragment)
+        detector.setup()
 
-        val countFragment = CountFragment.getInstance()
-        if (countFragment != null) {
-            detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this, countFragment)
-            detector.setup()
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
-            cameraExecutor = Executors.newSingleThreadExecutor()
+        fragmentCameraBinding.viewFinder.post {
+            setupCamera()
+        }
 
-            fragmentCameraBinding.viewFinder.post {
-                setupCamera()
-            }
+        countFragment.setOnActivityCreatedCallback {
+            val countButton = countFragment.getCountButton()
 
-            countFragment.setOnActivityCreatedCallback {
-                val countButton = countFragment.getCountButton()
+            if (countButton != null) {
+                val bottomSheetBehavior = BottomSheetBehavior.from(fragmentCameraBinding.bottomSheetLayout.root)
+                bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                        val buttonBottomY = countButton.y + countButton.height + countButton.paddingBottom
+                        val sheetTopY = bottomSheet.y
 
-                if (countButton != null) {
-                    val bottomSheetBehavior = BottomSheetBehavior.from(fragmentCameraBinding.bottomSheetLayout.root)
-                    bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-                        override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                            val buttonBottomY = countButton.y + countButton.height + countButton.paddingBottom
-                            val sheetTopY = bottomSheet.y
+                        val isButtonWithinSheet = buttonBottomY >= sheetTopY
+                        countButton.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
+                    }
 
-                            val isButtonWithinSheet = buttonBottomY >= sheetTopY
-                            countButton.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
-                        }
-
-                        override fun onStateChanged(bottomSheet: View, newState: Int) {
-                            when (newState) {
-                                BottomSheetBehavior.STATE_COLLAPSED -> {
-                                    countButton.visibility = View.VISIBLE
-                                }
-                                BottomSheetBehavior.STATE_EXPANDED -> {
-                                    countButton.visibility = View.GONE
-                                }
+                    override fun onStateChanged(bottomSheet: View, newState: Int) {
+                        when (newState) {
+                            BottomSheetBehavior.STATE_COLLAPSED -> {
+                                countButton.visibility = View.VISIBLE
+                            }
+                            BottomSheetBehavior.STATE_EXPANDED -> {
+                                countButton.visibility = View.GONE
                             }
                         }
-                    })
-                }
+                    }
+                })
             }
-
-            initBottomSheetControls()
         }
+
+        initBottomSheetControls()
     }
     private fun initBottomSheetControls() {
         // When clicked, lower detection score threshold floor
@@ -307,6 +305,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     override fun onEmptyDetect() {
         fragmentCameraBinding.overlay.invalidate()
+        fragmentCameraBinding.overlay.clear()
+        countFragment.clear()
     }
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
