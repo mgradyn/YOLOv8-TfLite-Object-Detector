@@ -324,14 +324,22 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()) {
-        if (it[Manifest.permission.CAMERA] == true) { startCamera() }
+        ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.CAMERA] == true &&
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+            startCamera()
+        } else {
+
+        }
     }
 
     companion object {
         private const val TAG = "Camera"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        private val REQUIRED_PERMISSIONS = arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
     }
 
 }
