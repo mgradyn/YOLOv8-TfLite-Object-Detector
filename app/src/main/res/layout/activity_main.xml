@@ -27,14 +27,16 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/fragment_container"
-                android:name="com.surendramaran.yolov8tflite.CameraFragment"
+
+            <fragment
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:keepScreenOn="true"
-                tools:layout="@layout/fragment_camera" />
+                android:layout_weight="1"
+                android:id="@+id/my_nav_host_fragment"
+                android:name="androidx.navigation.fragment.NavHostFragment"
+                app:navGraph="@navigation/app_navigation"
+                app:defaultNavHost="true"
+                />
 
         </RelativeLayout>
 
