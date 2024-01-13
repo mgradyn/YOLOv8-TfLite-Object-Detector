@@ -3,6 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <Button
+        android:id="@+id/totalCountBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:text="@string/total_count"
+        android:background="@drawable/pill_button_background"
+        android:layout_marginStart="96dp"
+        android:layout_marginVertical="24dp"
+        app:layout_anchorGravity="top|start" />
+
     <GridLayout
         android:id="@+id/counts_grid"
         android:layout_width="match_parent"

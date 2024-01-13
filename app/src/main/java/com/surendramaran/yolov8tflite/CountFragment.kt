@@ -8,11 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
-import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.app.AlertDialog
 
 class CountFragment : Fragment(), Detector.CountListener {
 
@@ -27,7 +25,6 @@ class CountFragment : Fragment(), Detector.CountListener {
     )
     private var countButton: Button? = null
     private var onActivityCreatedCallback: (() -> Unit)? = null
-    private lateinit var drawerLayout: DrawerLayout
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -82,6 +79,11 @@ class CountFragment : Fragment(), Detector.CountListener {
             sumCounts()
             Log.d("CountFragment", "Total Count: $totalCount")
         }
+
+        val totalCountButton = view.findViewById<Button>(R.id.totalCountBtn)
+        totalCountButton?.setOnClickListener {
+            showTotalCountDialog()
+        }
     }
 
     private fun updateCount(newCounts: List<Count>) {
@@ -108,6 +110,26 @@ class CountFragment : Fragment(), Detector.CountListener {
         }
 
         updateCount(newCounts)
+    }
+
+    private fun showTotalCountDialog() {
+        val totalCountView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.total_count_dialog, null)
+
+        val linearLayout = totalCountView?.findViewById<LinearLayout>(R.id.countDialogContent)
+        for (count in totalCount) {
+            val textView = TextView(context)
+            textView.text = "${count.name}: ${count.count}"
+            textView.textSize = 20f
+            linearLayout?.addView(textView)
+        }
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setView(totalCountView)
+            .setPositiveButton("OK") { dialog, _ ->
+                // Handle positive button click if needed
+                dialog.dismiss()
+            }.create().show()
     }
 
     fun getCountButton(): Button? {
