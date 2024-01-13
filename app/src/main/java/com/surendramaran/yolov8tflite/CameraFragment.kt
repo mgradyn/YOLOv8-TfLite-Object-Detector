@@ -96,26 +96,26 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
 
         countFragment.setOnActivityCreatedCallback {
-            val countButton = countFragment.getCountButton()
+            val buttonsLayout = countFragment.getButtonsLayout()
 
-            if (countButton != null) {
+            if (buttonsLayout != null) {
                 val bottomSheetBehavior = BottomSheetBehavior.from(fragmentCameraBinding.bottomSheetLayout.root)
                 bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                        val buttonBottomY = countButton.y + countButton.height + countButton.paddingBottom
+                        val buttonBottomY = buttonsLayout.y + buttonsLayout.height + buttonsLayout.paddingBottom
                         val sheetTopY = bottomSheet.y
 
                         val isButtonWithinSheet = buttonBottomY >= sheetTopY
-                        countButton.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
+                        buttonsLayout.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
                     }
 
                     override fun onStateChanged(bottomSheet: View, newState: Int) {
                         when (newState) {
                             BottomSheetBehavior.STATE_COLLAPSED -> {
-                                countButton.visibility = View.VISIBLE
+                                buttonsLayout.visibility = View.VISIBLE
                             }
                             BottomSheetBehavior.STATE_EXPANDED -> {
-                                countButton.visibility = View.GONE
+                                buttonsLayout.visibility = View.GONE
                             }
                         }
                     }

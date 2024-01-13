@@ -9,8 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
@@ -31,7 +33,6 @@ class CountFragment : Fragment(), Detector.CountListener {
         "ripe" to Count("ripe", 0),
         "abnormal" to Count("abnormal", 0)
     )
-    private var countButton: Button? = null
     private var onActivityCreatedCallback: (() -> Unit)? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -55,8 +56,8 @@ class CountFragment : Fragment(), Detector.CountListener {
 
         val countList = counts.entries.toList()
         for ((index, count) in countList.withIndex()) {
-            var countClass = count.value.name
-            var countAmount = count.value.count
+            val countClass = count.value.name
+            val countAmount = count.value.count
 
             val linearLayout = LinearLayout(context)
             linearLayout.orientation = LinearLayout.HORIZONTAL
@@ -95,15 +96,20 @@ class CountFragment : Fragment(), Detector.CountListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        countButton = view.findViewById(R.id.countBtn)
+
+        val countButton = view.findViewById<Button>(R.id.countBtn)
         countButton?.setOnClickListener {
             sumCounts()
-            Log.d("CountFragment", "Total Count: $totalCount")
         }
 
         val totalCountButton = view.findViewById<Button>(R.id.totalCountBtn)
         totalCountButton?.setOnClickListener {
             showTotalCountDialog()
+        }
+
+        val resetButton = view.findViewById<ImageButton>(R.id.resetBtn)
+        resetButton?.setOnClickListener {
+            showResetCountDialog()
         }
     }
 
@@ -149,11 +155,23 @@ class CountFragment : Fragment(), Detector.CountListener {
             }.create().show()
     }
 
-    fun getCountButton(): Button? {
-        return countButton
+    private fun showResetCountDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Are you sure you want to reset the count?")
+            .setPositiveButton("OK") { dialog, _ ->
+                resetTotalCount()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
     }
 
-    fun resetTotalCount() {
+    fun getButtonsLayout(): RelativeLayout? {
+        return view?.findViewById(R.id.countButtonsLayout)
+    }
+
+    private fun resetTotalCount() {
         totalCount.forEach { (key, value) ->
             totalCount[key] = Count(value.name, 0)
         }
