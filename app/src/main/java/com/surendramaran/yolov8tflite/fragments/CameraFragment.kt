@@ -1,4 +1,4 @@
-package com.surendramaran.yolov8tflite
+package com.surendramaran.yolov8tflite.fragments
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -14,7 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -24,6 +23,11 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.surendramaran.yolov8tflite.BoundingBox
+import com.surendramaran.yolov8tflite.Constants
+import com.surendramaran.yolov8tflite.Detector
+import com.surendramaran.yolov8tflite.R
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,10 +36,6 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
@@ -57,7 +57,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         if (allPermissionsGranted()){
             startCamera()
         } else {
-            requestPermissionLauncher.launch(CameraFragment.REQUIRED_PERMISSIONS)
+            requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
         }
     }
 
@@ -225,7 +225,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         if (allPermissionsGranted()) {
             startCamera()
         } else {
-            requestPermissionLauncher.launch(CameraFragment.REQUIRED_PERMISSIONS)
+            requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
         }
     }
 
@@ -258,7 +258,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         try {
             cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
         } catch (exc: Exception) {
-            Log.e(CameraFragment.TAG, "Use case binding failed", exc)
+            Log.e(TAG, "Use case binding failed", exc)
         }
     }
 
@@ -304,9 +304,11 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
 
     override fun onEmptyDetect() {
-        fragmentCameraBinding.overlay.invalidate()
-        fragmentCameraBinding.overlay.clear()
-        countFragment.clear()
+        if (isAdded) {
+            fragmentCameraBinding.overlay.invalidate()
+            fragmentCameraBinding.overlay.clear()
+            countFragment.clear()
+        }
     }
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {

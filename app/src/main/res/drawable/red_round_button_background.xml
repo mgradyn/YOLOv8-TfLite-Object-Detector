@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <!-- Color for pressed state (e.g., light red) -->
+        <shape android:shape="oval">
+            <solid android:color="#FFFF8A80" />
+        </shape>
+    </item>
+    <item android:state_focused="true" android:state_pressed="false">
+        <!-- Color for focused state (e.g., lighter red) -->
+        <shape android:shape="oval">
+            <solid android:color="#FFFF4081" />
+        </shape>
+    </item>
+    <item>
+        <!-- Default color for normal state (e.g., pale red) -->
+        <shape android:shape="oval">
+            <solid android:color="#FFE57373" />
+        </shape>
+    </item>
+</selector>

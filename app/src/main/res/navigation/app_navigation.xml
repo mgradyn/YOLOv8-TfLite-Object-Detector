@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/camera_fragment"
-        android:name="com.surendramaran.yolov8tflite.CameraFragment"
+        android:name="com.surendramaran.yolov8tflite.fragments.CameraFragment"
         android:label="fragment_camera"
         android:keepScreenOn="true"
         tools:layout="@layout/fragment_camera"
@@ -15,17 +15,37 @@
         <action
             android:id="@+id/action_camera_fragment_to_auth_fragment"
             app:destination="@id/auth_fragment" />
+        <action
+            android:id="@+id/action_camera_fragment_to_tree_list_fragment"
+            app:destination="@id/tree_list_fragment" />
     </fragment>
 
     <fragment
         android:id="@+id/auth_fragment"
-        android:name="com.surendramaran.yolov8tflite.AuthFragment"
+        android:name="com.surendramaran.yolov8tflite.fragments.AuthFragment"
         android:label="fragment_auth"
         tools:layout="@layout/fragment_auth"
         >
         <action
             android:id="@+id/action_auth_fragment_to_camera_fragment"
             app:destination="@id/camera_fragment" />
+        <action
+            android:id="@+id/action_auth_fragment_to_tree_list_fragment"
+            app:destination="@id/tree_list_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/tree_list_fragment"
+        android:name="com.surendramaran.yolov8tflite.fragments.TreeListFragment"
+        android:label="fragment_tree_list"
+        tools:layout="@layout/fragment_tree_list"
+        >
+        <action
+            android:id="@+id/action_tree_list_fragment_to_camera_fragment"
+            app:destination="@id/camera_fragment" />
+        <action
+            android:id="@+id/action_tree_list_fragment_to_auth_fragment"
+            app:destination="@id/auth_fragment" />
     </fragment>
 
 </navigation>

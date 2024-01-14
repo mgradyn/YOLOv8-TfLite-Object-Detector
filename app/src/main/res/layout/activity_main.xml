@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:id="@+id/my_nav_host_fragment"
+                android:id="@+id/nav_host_fragment"
                 android:name="androidx.navigation.fragment.NavHostFragment"
                 app:navGraph="@navigation/app_navigation"
                 app:defaultNavHost="true"
@@ -61,10 +61,17 @@
         <!-- Add items to the sidebar as needed -->
         <!-- Example item -->
         <TextView
+            android:id="@+id/homeSidebarItem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Sidebar Item 1" />
+            android:text="Home" />
+        <TextView
+            android:id="@+id/treeListSidebarItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="TreeList" />
 
     </LinearLayout>
 

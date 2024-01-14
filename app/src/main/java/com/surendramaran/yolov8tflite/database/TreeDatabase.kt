@@ -9,7 +9,7 @@ import com.surendramaran.yolov8tflite.entities.Tree
 @Database(entities = [Tree::class], version = 1)
 abstract class TreeDatabase : RoomDatabase() {
 
-    abstract fun noteDao(): TreeDao
+    abstract fun treeDao(): TreeDao
 
     companion object {
         private var instance: TreeDatabase? = null

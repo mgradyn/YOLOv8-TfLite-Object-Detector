@@ -1,9 +1,10 @@
-package com.surendramaran.yolov8tflite
+package com.surendramaran.yolov8tflite.fragments
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,20 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.surendramaran.yolov8tflite.BoundingBox
+import com.surendramaran.yolov8tflite.Detector
+import com.surendramaran.yolov8tflite.R
+import com.surendramaran.yolov8tflite.database.TreeDao
+import com.surendramaran.yolov8tflite.entities.Tree
+import com.surendramaran.yolov8tflite.model.Count
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CountFragment : Fragment(), Detector.CountListener {
 
@@ -34,6 +49,8 @@ class CountFragment : Fragment(), Detector.CountListener {
         "abnormal" to Count("abnormal", 0)
     )
     private var onActivityCreatedCallback: (() -> Unit)? = null
+    private lateinit var treeDao: TreeDao
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -43,6 +60,12 @@ class CountFragment : Fragment(), Detector.CountListener {
 
     fun setOnActivityCreatedCallback(callback: () -> Unit) {
         onActivityCreatedCallback = callback
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+//        treeDao = TreeDatabase.getInstance(requireContext()).treeDao()
     }
 
     override fun onCreateView(
@@ -111,6 +134,11 @@ class CountFragment : Fragment(), Detector.CountListener {
         resetButton?.setOnClickListener {
             showResetCountDialog()
         }
+
+        val saveButton = view.findViewById<ImageButton>(R.id.saveBtn)
+        resetButton?.setOnClickListener {
+            showSaveCountDialog()
+        }
     }
 
     private fun updateCount(newCounts: List<Count>) {
@@ -167,6 +195,30 @@ class CountFragment : Fragment(), Detector.CountListener {
             }.create().show()
     }
 
+    private fun showEnableLocationDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Please enable location permission")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+        builder.create().show()
+    }
+
+    private fun showSaveCountDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Are you sure you want to save the count?")
+            .setPositiveButton("OK") { dialog, _ ->
+                if (saveTotalCount())
+                {
+                    resetTotalCount()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
+    }
+
     fun getButtonsLayout(): RelativeLayout? {
         return view?.findViewById(R.id.countButtonsLayout)
     }
@@ -175,6 +227,34 @@ class CountFragment : Fragment(), Detector.CountListener {
         totalCount.forEach { (key, value) ->
             totalCount[key] = Count(value.name, 0)
         }
+    }
+
+    private fun saveTotalCount():Boolean {
+        val locationResult = getLastLocation()
+
+        if (locationResult != null) {
+            val (latitude, longitude) = locationResult
+
+            val newTree = Tree(
+                latitude = latitude,
+                longitude = longitude,
+                isUploaded = false,
+                ripe = totalCount["ripe"]?.count ?: 0,
+                underripe = totalCount["underripe"]?.count ?: 0,
+                unripe = totalCount["unripe"]?.count ?: 0,
+                flower = totalCount["flower"]?.count ?: 0,
+                abnromal = totalCount["abnormal"]?.count ?: 0
+            )
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+//                    treeDao.insert(newTree)
+                }
+            }
+            return true
+        }
+        showEnableLocationDialog()
+        return false
     }
 
     fun clear() {
@@ -209,6 +289,31 @@ class CountFragment : Fragment(), Detector.CountListener {
                 totalCount[count.key] = totalCountItem
             }
         }
+    }
+
+    private fun getLastLocation(): Pair<Double, Double>? {
+        var locationResult: Pair<Double, Double>? = null
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        val latitude = it.latitude
+                        val longitude = it.longitude
+                        locationResult = Pair(latitude, longitude)
+                    }
+                }
+        }
+        return locationResult
     }
 
     companion object {

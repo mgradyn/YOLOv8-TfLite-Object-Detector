@@ -59,6 +59,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
@@ -73,12 +74,12 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:latest_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    val nav_version_ktx = "2.7.6"
-    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version_ktx")
-    implementation("androidx.navigation:navigation-ui-ktx:$nav_version_ktx")
+    val navVersion = "2.7.6"
+    implementation("androidx.navigation:navigation-fragment-ktx:${navVersion}")
+    implementation("androidx.navigation:navigation-ui-ktx:${navVersion}")
 
-    val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:${roomVersion}")
+    annotationProcessor("androidx.room:room-compiler:${roomVersion}")
 
 }
