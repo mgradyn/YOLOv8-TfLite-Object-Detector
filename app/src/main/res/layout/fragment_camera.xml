@@ -6,58 +6,125 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/inner_camera_container"
+    <FrameLayout
+        android:id="@+id/frame_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.camera.view.PreviewView
-            android:id="@+id/view_finder"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="3:4"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:scaleType="fillStart">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/inner_camera_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
 
-        </androidx.camera.view.PreviewView>
+            <androidx.camera.view.PreviewView
+                android:id="@+id/view_finder"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="3:4"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:scaleType="fillStart">
 
-        <com.surendramaran.yolov8tflite.OverlayView
-            android:id="@+id/overlay"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="3:4"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            </androidx.camera.view.PreviewView>
 
-        <TextView
-            android:id="@+id/inferenceTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:textColor="@color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="100ms" />
+            <com.surendramaran.yolov8tflite.OverlayView
+                android:id="@+id/overlay"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="3:4"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-<!--        <Button-->
-<!--            android:id="@+id/countBtn"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Save Count"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toBottomOf="@+id/view_finder"-->
-<!--            app:layout_constraintVertical_bias="0.418" />-->
+            <TextView
+                android:id="@+id/inferenceTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="100ms" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/count_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+            <Button
+                android:id="@+id/totalCountBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="@string/total_count"
+                android:background="@drawable/pill_button_background"
+                android:layout_marginStart="96dp"
+                android:layout_marginVertical="24dp"
+                app:layout_anchorGravity="top|start" />
+
+            <GridLayout
+                android:id="@+id/counts_grid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginTop="68dp"
+                android:padding="8dp"
+                android:columnCount="3"
+                android:rowCount="2"
+                android:alignmentMode="alignMargins"
+                android:useDefaultMargins="true"
+                app:layout_anchorGravity="top|start">
+                <!-- The GridLayout will be populated with TextViews dynamically -->
+            </GridLayout>
+
+            <RelativeLayout
+                android:id="@+id/countButtonsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="155dp"
+                app:layout_anchor="@id/counts_grid"
+                app:layout_anchorGravity="bottom|center_horizontal">
+                <Button
+                    android:id="@+id/countBtn"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:background="@drawable/round_button_background"
+                    android:text=""
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true" />
+                <ImageButton
+                    android:id="@+id/resetBtn"
+                    android:layout_width="54dp"
+                    android:layout_height="54dp"
+                    android:background="@drawable/red_round_button_background"
+                    android:src="@drawable/baseline_delete_24"
+                    android:layout_toStartOf="@id/countBtn"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="36dp"
+                    android:contentDescription="@string/reset_total_count" />
+                <ImageButton
+                    android:id="@+id/saveBtn"
+                    android:layout_width="54dp"
+                    android:layout_height="54dp"
+                    android:background="@drawable/round_button_background"
+                    android:src="@drawable/baseline_check_24"
+                    android:layout_toEndOf="@id/countBtn"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="36dp"
+                    android:contentDescription="@string/save_total_count" />
+            </RelativeLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </FrameLayout >
+
     <include
         android:id="@+id/bottom_sheet_layout"
         layout="@layout/info_bottom_sheet" />

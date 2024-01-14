@@ -10,7 +10,7 @@ import androidx.core.view.GravityCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
-import com.surendramaran.yolov8tflite.fragments.CountFragment
+import com.surendramaran.yolov8tflite.fragments.CameraFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
@@ -24,9 +24,8 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        val countFragment = CountFragment.getInstance()
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_count_container, countFragment)
+            .replace(R.id.camera_container, CameraFragment())
             .commit()
 
         val toggle = ActionBarDrawerToggle(

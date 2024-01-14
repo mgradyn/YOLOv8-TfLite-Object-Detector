@@ -8,13 +8,22 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.Button
+import android.widget.GridLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -23,23 +32,28 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.surendramaran.yolov8tflite.BoundingBox
 import com.surendramaran.yolov8tflite.Constants
 import com.surendramaran.yolov8tflite.Detector
 import com.surendramaran.yolov8tflite.R
+import com.surendramaran.yolov8tflite.database.TreeDao
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
+import com.surendramaran.yolov8tflite.entities.Tree
+import com.surendramaran.yolov8tflite.model.Count
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
-
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
 
@@ -50,7 +64,24 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
-    private val countFragment = CountFragment.getInstance()
+    private var counts: MutableMap<String, Count> = mutableMapOf(
+        "flower" to Count("flower", 0),
+        "unripe" to Count("unripe", 0),
+        "underripe" to Count("underripe", 0),
+        "ripe" to Count("ripe", 0),
+        "abnormal" to Count("abnormal", 0)
+    )
+    private lateinit var countViews: MutableMap<String, TextView>
+    private var totalCount: MutableMap<String, Count> = mutableMapOf(
+        "flower" to Count("flower", 0),
+        "unripe" to Count("unripe", 0),
+        "underripe" to Count("underripe", 0),
+        "ripe" to Count("ripe", 0),
+        "abnormal" to Count("abnormal", 0)
+    )
+    private var onActivityCreatedCallback: (() -> Unit)? = null
+    private lateinit var treeDao: TreeDao
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onResume() {
         super.onResume()
@@ -81,12 +112,56 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     ): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
 
-        return fragmentCameraBinding.root
+        val view = fragmentCameraBinding.countContainer
+
+        countViews = mutableMapOf()
+        val gridLayout = view.findViewById<GridLayout>(R.id.counts_grid)
+        val countList = counts.entries.toList()
+
+        for ((index, count) in countList.withIndex()) {
+            val countClass = count.value.name
+            val countAmount = count.value.count
+
+            val linearLayout = LinearLayout(context)
+            linearLayout.orientation = LinearLayout.HORIZONTAL
+            linearLayout.gravity = Gravity.CENTER_VERTICAL
+
+            val textView = TextView(requireContext())
+            val textLayoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            textView.layoutParams = textLayoutParams
+            textView.text = "${countClass}: ${countAmount}"
+            textView.id = View.generateViewId()
+            countViews[countClass] = textView
+
+            val addButton = ImageView(requireContext())
+            val buttonLayoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            addButton.layoutParams = buttonLayoutParams
+            addButton.setImageResource(R.drawable.baseline_add_24)
+            addButton.setOnClickListener(addCountPerClassListener(count))
+            addButton.id = View.generateViewId()
+
+            linearLayout.addView(textView)
+            linearLayout.addView(addButton)
+
+            val layoutParams = GridLayout.LayoutParams()
+            layoutParams.columnSpec = GridLayout.spec(index % 3)
+            layoutParams.rowSpec = GridLayout.spec(index / 3)
+            gridLayout.addView(linearLayout, index)
+        }
+
+
+        return fragmentCameraBinding.root.rootView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this, countFragment)
+        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
         detector.setup()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -95,32 +170,24 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             setupCamera()
         }
 
-        countFragment.setOnActivityCreatedCallback {
-            val buttonsLayout = countFragment.getButtonsLayout()
+        val countButton = view.findViewById<Button>(R.id.countBtn)
+        countButton?.setOnClickListener {
+            sumCounts()
+        }
 
-            if (buttonsLayout != null) {
-                val bottomSheetBehavior = BottomSheetBehavior.from(fragmentCameraBinding.bottomSheetLayout.root)
-                bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                        val buttonBottomY = buttonsLayout.y + buttonsLayout.height + buttonsLayout.paddingBottom
-                        val sheetTopY = bottomSheet.y
+        val totalCountButton = view.findViewById<Button>(R.id.totalCountBtn)
+        totalCountButton?.setOnClickListener {
+            showTotalCountDialog()
+        }
 
-                        val isButtonWithinSheet = buttonBottomY >= sheetTopY
-                        buttonsLayout.visibility = if (isButtonWithinSheet) View.GONE else View.VISIBLE
-                    }
+        val resetButton = view.findViewById<ImageButton>(R.id.resetBtn)
+        resetButton?.setOnClickListener {
+            showResetCountDialog()
+        }
 
-                    override fun onStateChanged(bottomSheet: View, newState: Int) {
-                        when (newState) {
-                            BottomSheetBehavior.STATE_COLLAPSED -> {
-                                buttonsLayout.visibility = View.VISIBLE
-                            }
-                            BottomSheetBehavior.STATE_EXPANDED -> {
-                                buttonsLayout.visibility = View.GONE
-                            }
-                        }
-                    }
-                })
-            }
+        val saveButton = view.findViewById<ImageButton>(R.id.saveBtn)
+        resetButton?.setOnClickListener {
+            showSaveCountDialog()
         }
 
         initBottomSheetControls()
@@ -307,7 +374,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         if (isAdded) {
             fragmentCameraBinding.overlay.invalidate()
             fragmentCameraBinding.overlay.clear()
-            countFragment.clear()
+            clear()
         }
     }
 
@@ -335,6 +402,177 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
+    private fun addCountPerClassListener(count: MutableMap.MutableEntry<String, Count>)
+            : View.OnClickListener {
+        return View.OnClickListener {
+            val totalCountItem = totalCount[count.key]
+            if (totalCountItem != null) {
+                totalCountItem.count += count.value.count
+                totalCount[count.key] = totalCountItem
+            }
+        }
+    }
+
+    private fun updateCount(newCounts: List<Count>) {
+        requireActivity().runOnUiThread {
+            for (item in newCounts) {
+                val textViewToUpdate = countViews[item.name]
+                textViewToUpdate?.text = "${item.name}: ${item.count}"
+                countViews[item.name] = textViewToUpdate ?: countViews[item.name]!!
+                counts[item.name]?.count = item.count
+            }
+
+            view?.invalidate()
+        }
+    }
+
+    override fun onCountsUpdated(boundingBoxes: List<BoundingBox>) {
+        val newCounts = counts.map { Count(it.value.name, 0) }.toMutableList()
+        for (boundingBox in boundingBoxes) {
+            val count = newCounts.find { it.name == boundingBox.clsName }
+            count?.count = count?.count?.plus(1) ?: 0
+        }
+
+        updateCount(newCounts)
+    }
+
+    private fun showTotalCountDialog() {
+        val totalCountView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.total_count_dialog, null)
+
+        val linearLayout = totalCountView?.findViewById<LinearLayout>(R.id.countDialogContent)
+        for (count in totalCount) {
+            val textView = TextView(requireContext())
+            textView.text = "${count.value.name}: ${count.value.count}"
+            textView.textSize = 20f
+            linearLayout?.addView(textView)
+        }
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setView(totalCountView)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
+    }
+
+    private fun showResetCountDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Are you sure you want to reset the count?")
+            .setPositiveButton("OK") { dialog, _ ->
+                resetTotalCount()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
+    }
+
+    private fun showEnableLocationDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Please enable location permission")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+        builder.create().show()
+    }
+
+    private fun showSaveCountDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Are you sure you want to save the count?")
+            .setPositiveButton("OK") { dialog, _ ->
+                if (saveTotalCount())
+                {
+                    resetTotalCount()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }.create().show()
+    }
+
+    private fun resetTotalCount() {
+        totalCount.forEach { (key, value) ->
+            totalCount[key] = Count(value.name, 0)
+        }
+    }
+
+    private fun saveTotalCount():Boolean {
+        val locationResult = getLastLocation()
+
+        if (locationResult != null) {
+            val (latitude, longitude) = locationResult
+
+            val newTree = Tree(
+                latitude = latitude,
+                longitude = longitude,
+                isUploaded = false,
+                ripe = totalCount["ripe"]?.count ?: 0,
+                underripe = totalCount["underripe"]?.count ?: 0,
+                unripe = totalCount["unripe"]?.count ?: 0,
+                flower = totalCount["flower"]?.count ?: 0,
+                abnromal = totalCount["abnormal"]?.count ?: 0
+            )
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+//                    treeDao.insert(newTree)
+                }
+            }
+            return true
+        }
+        showEnableLocationDialog()
+        return false
+    }
+
+    private fun clear() {
+        requireActivity().runOnUiThread {
+            counts.forEach { (key, value) ->
+                counts[key] = Count(value.name, 0)
+            }
+            for (item in counts) {
+                val textViewToUpdate = countViews[item.value.name]
+                textViewToUpdate?.text = "${item.value.name}: 0"
+                countViews[item.value.name] = textViewToUpdate ?: countViews[item.value.name]!!
+            }
+            view?.invalidate()
+        }
+    }
+
+    private fun sumCounts() {
+        for (count in counts) {
+            val totalCountItem = totalCount[count.value.name]
+            if (totalCountItem != null) {
+                totalCountItem.count += count.value.count
+            }
+        }
+    }
+
+    private fun getLastLocation(): Pair<Double, Double>? {
+        var locationResult: Pair<Double, Double>? = null
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        val latitude = it.latitude
+                        val longitude = it.longitude
+                        locationResult = Pair(latitude, longitude)
+                    }
+                }
+        }
+        return locationResult
+    }
+
     companion object {
         private const val TAG = "Camera"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -343,5 +581,4 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             Manifest.permission.ACCESS_FINE_LOCATION
         )
     }
-
 }
