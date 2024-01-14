@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "tree")
+@Entity(tableName = "tree_table")
 data class Tree (val latitude: Double,
                  val longitude: Double,
                  val isUploaded: Boolean,

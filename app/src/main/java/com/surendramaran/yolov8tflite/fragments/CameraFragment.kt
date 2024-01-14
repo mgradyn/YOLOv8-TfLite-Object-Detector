@@ -1,5 +1,6 @@
 package com.surendramaran.yolov8tflite.fragments
 
+import TreeDatabase
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -82,6 +83,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private var onActivityCreatedCallback: (() -> Unit)? = null
     private lateinit var treeDao: TreeDao
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    val database by lazy { TreeDatabase.getDatabase(requireContext()) }
 
     override fun onResume() {
         super.onResume()
@@ -186,7 +188,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
 
         val saveButton = view.findViewById<ImageButton>(R.id.saveBtn)
-        resetButton?.setOnClickListener {
+        saveButton?.setOnClickListener {
             showSaveCountDialog()
         }
 
@@ -500,12 +502,13 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private fun saveTotalCount():Boolean {
         val locationResult = getLastLocation()
 
-        if (locationResult != null) {
-            val (latitude, longitude) = locationResult
+//        change to locationResult != null
+        if (locationResult == null) {
+//            val (latitude, longitude) = locationResult
 
             val newTree = Tree(
-                latitude = latitude,
-                longitude = longitude,
+                latitude = 0.3232,
+                longitude = 0.4323,
                 isUploaded = false,
                 ripe = totalCount["ripe"]?.count ?: 0,
                 underripe = totalCount["underripe"]?.count ?: 0,
@@ -516,7 +519,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
             lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
-//                    treeDao.insert(newTree)
+                    database.treeDao().insert(newTree)
                 }
             }
             return true
@@ -554,10 +557,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -578,7 +577,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
         )
     }
 }
