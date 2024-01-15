@@ -1,7 +1,6 @@
 package com.surendramaran.yolov8tflite
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -12,7 +11,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
-import com.surendramaran.yolov8tflite.fragments.CameraFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
@@ -26,10 +24,6 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.camera_container, CameraFragment())
-            .commit()
 
         val toggle = ActionBarDrawerToggle(
             this,

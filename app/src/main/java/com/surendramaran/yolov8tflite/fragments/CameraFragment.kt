@@ -170,7 +170,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
 
 
-        return fragmentCameraBinding.root.rootView
+        return fragmentCameraBinding.root
     }
 
     private fun shutdownAndAwaitTermination(executorService: ExecutorService) {
@@ -495,15 +495,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             .setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
             }.create().show()
-    }
-
-    private fun showEnableLocationDialog() {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setMessage("Please enable location permission")
-            .setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-            }
-        builder.create().show()
     }
 
     private fun showSaveCountDialog() {
