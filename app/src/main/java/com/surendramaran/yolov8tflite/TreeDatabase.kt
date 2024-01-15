@@ -30,43 +30,43 @@ abstract class TreeDatabase : RoomDatabase() {
                     "tree_database"
                 )
                     .fallbackToDestructiveMigration()
-                    .addCallback(TreeDatabaseCallback(scope))
+//                    .addCallback(TreeDatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private class TreeDatabaseCallback(
-            private val scope: CoroutineScope
-        ) : RoomDatabase.Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                INSTANCE?.let { database ->
-                    scope.launch(Dispatchers.IO) {
-                        populateDatabase(database.treeDao())
-                    }
-                }
-            }
-        }
-        suspend fun populateDatabase(treeDao: TreeDao) {
-            // Start the app with a clean database every time.
-            // Not needed if you only populate on creation.
-            treeDao.deleteAllTrees()
-
-            val newTree = Tree(
-                latitude = 0.3232,
-                longitude = 0.4323,
-                isUploaded = false,
-                ripe = 0,
-                underripe = 0,
-                unripe = 0,
-                flower = 0,
-                abnromal = 0
-            )
-
-            treeDao.insert(newTree)
-        }
+//        private class TreeDatabaseCallback(
+//            private val scope: CoroutineScope
+//        ) : RoomDatabase.Callback() {
+//            override fun onCreate(db: SupportSQLiteDatabase) {
+//                super.onCreate(db)
+//                INSTANCE?.let { database ->
+//                    scope.launch(Dispatchers.IO) {
+//                        populateDatabase(database.treeDao())
+//                    }
+//                }
+//            }
+//        }
+//        suspend fun populateDatabase(treeDao: TreeDao) {
+//            // Start the app with a clean database every time.
+//            // Not needed if you only populate on creation.
+//            treeDao.deleteAllTrees()
+//
+//            val newTree = Tree(
+//                latitude = 0.3232,
+//                longitude = 0.4323,
+//                isUploaded = false,
+//                ripe = 0,
+//                underripe = 0,
+//                unripe = 0,
+//                flower = 0,
+//                abnromal = 0
+//            )
+//
+//            treeDao.insert(newTree)
+//        }
 
     }
 }

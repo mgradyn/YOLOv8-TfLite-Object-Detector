@@ -7,10 +7,17 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.surendramaran.yolov8tflite.R
+import com.surendramaran.yolov8tflite.entities.Tree
 import com.surendramaran.yolov8tflite.model.CardItem
 
-class TreeCardAdapter(private val cardItems: List<CardItem>) :
-    RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
+class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
+
+    private var cardItems: List<Tree>? = null
+
+    fun setCardItems(items: List<Tree>) {
+        cardItems = items
+        notifyDataSetChanged()
+    }
 
     class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: MaterialCardView = itemView.findViewById(R.id.treeCardView)
@@ -25,18 +32,20 @@ class TreeCardAdapter(private val cardItems: List<CardItem>) :
     }
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        val item = cardItems[position]
-        holder.textTitle.text = item.title
-        holder.textContent.text = item.content
+        val item = cardItems?.get(position)
+        item?.let {
+            holder.textTitle.text = it.id
+            holder.textContent.text = it.latitude.toString()
 
-        // Add click listener to handle expansion/collapse
-        holder.cardView.setOnClickListener {
-            val expanded = holder.textContent.visibility == View.VISIBLE
-            holder.textContent.visibility = if (expanded) View.GONE else View.VISIBLE
+            // Add click listener to handle expansion/collapse
+            holder.cardView.setOnClickListener {
+                val expanded = holder.textContent.visibility == View.VISIBLE
+                holder.textContent.visibility = if (expanded) View.GONE else View.VISIBLE
+            }
         }
     }
 
     override fun getItemCount(): Int {
-        return cardItems.size
+        return cardItems?.size ?: 0
     }
 }
