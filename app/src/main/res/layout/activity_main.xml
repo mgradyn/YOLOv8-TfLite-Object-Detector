@@ -41,11 +41,6 @@
 
         </RelativeLayout>
 
-        <FrameLayout
-            android:id="@+id/fragment_count_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- Sidebar view -->
@@ -58,21 +53,33 @@
         android:background="#FFFFFF"
         android:elevation="16dp">
 
-        <!-- Add items to the sidebar as needed -->
-        <!-- Example item -->
+        <!-- Home Item -->
         <TextView
             android:id="@+id/homeSidebarItem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Home" />
+            android:text="Home"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EAEAEA" />
+
+        <!-- TreeList Item -->
         <TextView
             android:id="@+id/treeListSidebarItem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="TreeList" />
-
+            android:text="TreeList"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:background="?android:attr/selectableItemBackground" />
     </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

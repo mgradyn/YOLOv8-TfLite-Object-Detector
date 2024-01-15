@@ -34,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
         manageDrawerBehavior()
+        findViewById<TextView>(R.id.homeSidebarItem)
+            .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
     }
 
 
@@ -57,6 +59,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.homeSidebarItem).setOnClickListener {
             if (navController.currentDestination?.id != R.id.camera_fragment) {
                 navController.navigate(R.id.camera_fragment)
+                findViewById<TextView>(R.id.homeSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
+                findViewById<TextView>(R.id.treeListSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
             }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -66,6 +72,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.treeListSidebarItem).setOnClickListener {
             if (navController.currentDestination?.id != R.id.tree_list_fragment) {
                 navController.navigate(R.id.tree_list_fragment)
+                findViewById<TextView>(R.id.treeListSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
+                findViewById<TextView>(R.id.homeSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
             }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
