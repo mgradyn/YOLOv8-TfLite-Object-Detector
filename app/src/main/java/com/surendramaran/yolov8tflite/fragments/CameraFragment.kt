@@ -1,6 +1,5 @@
 package com.surendramaran.yolov8tflite.fragments
 
-import TreeDatabase
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -33,6 +32,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -40,12 +40,15 @@ import com.surendramaran.yolov8tflite.BoundingBox
 import com.surendramaran.yolov8tflite.Constants
 import com.surendramaran.yolov8tflite.Detector
 import com.surendramaran.yolov8tflite.R
+import com.surendramaran.yolov8tflite.TreeApplication
+import com.surendramaran.yolov8tflite.TreeRepository
 import com.surendramaran.yolov8tflite.database.TreeDao
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
 import com.surendramaran.yolov8tflite.entities.Tree
 import com.surendramaran.yolov8tflite.model.Count
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,8 +58,13 @@ import java.util.concurrent.Executors
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
+
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
+
+    private val treeViewModel: TreeViewModel by viewModels {
+        TreeViewModelFactory((requireActivity().application as TreeApplication).repository)
+    }
 
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var cameraProvider: ProcessCameraProvider? = null
@@ -81,9 +89,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         "abnormal" to Count("abnormal", 0)
     )
     private var onActivityCreatedCallback: (() -> Unit)? = null
-    private lateinit var treeDao: TreeDao
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    val database by lazy { TreeDatabase.getDatabase(requireContext()) }
 
     override fun onResume() {
         super.onResume()
@@ -517,11 +523,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 abnromal = totalCount["abnormal"]?.count ?: 0
             )
 
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    database.treeDao().insert(newTree)
-                }
-            }
+            treeViewModel.insert(newTree)
             return true
         }
         showEnableLocationDialog()
