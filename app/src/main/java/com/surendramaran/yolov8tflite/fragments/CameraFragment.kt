@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
@@ -98,11 +99,13 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     override fun onResume() {
         super.onResume()
-        if (allPermissionsGranted()){
-            startCamera()
-        } else {
-            requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
-        }
+        setupCamera()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        cameraProvider?.unbindAll()
+        shutdownAndAwaitTermination(cameraExecutor)
     }
 
     override fun onDestroyView() {
@@ -168,6 +171,22 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
 
         return fragmentCameraBinding.root.rootView
+    }
+
+    private fun shutdownAndAwaitTermination(executorService: ExecutorService) {
+        executorService.shutdown()
+        try {
+            // Wait for existing tasks to terminate
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow()
+                if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                    Log.e("Camera Thread","ExecutorService did not terminate")
+                }
+            }
+        } catch (ie: InterruptedException) {
+            executorService.shutdownNow()
+            Thread.currentThread().interrupt()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

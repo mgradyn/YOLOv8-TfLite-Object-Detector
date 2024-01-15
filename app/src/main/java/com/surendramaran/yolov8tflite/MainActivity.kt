@@ -1,12 +1,14 @@
 package com.surendramaran.yolov8tflite
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
@@ -59,17 +61,31 @@ class MainActivity : AppCompatActivity() {
 
 
         findViewById<TextView>(R.id.homeSidebarItem).setOnClickListener {
-            navController.navigate(R.id.camera_fragment)
+            if (navController.currentDestination?.id != R.id.camera_fragment) {
+                navController.navigate(R.id.camera_fragment)
+            }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
             }
         }
 
         findViewById<TextView>(R.id.treeListSidebarItem).setOnClickListener {
-            navController.navigate(R.id.tree_list_fragment)
+            if (navController.currentDestination?.id != R.id.tree_list_fragment) {
+                navController.navigate(R.id.tree_list_fragment)
+            }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
             }
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val fragmentManager: FragmentManager = supportFragmentManager
+        if (fragmentManager.backStackEntryCount > 0) {
+            fragmentManager.popBackStack()
+        } else {
+            super.onBackPressed()
         }
     }
 }
