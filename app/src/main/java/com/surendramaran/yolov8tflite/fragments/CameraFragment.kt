@@ -1,6 +1,8 @@
 package com.surendramaran.yolov8tflite.fragments
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,9 +11,10 @@ import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -32,35 +35,32 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.surendramaran.yolov8tflite.BoundingBox
 import com.surendramaran.yolov8tflite.Constants
 import com.surendramaran.yolov8tflite.Detector
 import com.surendramaran.yolov8tflite.R
 import com.surendramaran.yolov8tflite.TreeApplication
-import com.surendramaran.yolov8tflite.TreeRepository
-import com.surendramaran.yolov8tflite.database.TreeDao
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
 import com.surendramaran.yolov8tflite.entities.Tree
 import com.surendramaran.yolov8tflite.model.Count
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener,
-    LocationListener {
+class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
     private val fragmentCameraBinding
@@ -75,8 +75,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private lateinit var detector: Detector
     private lateinit var cameraExecutor: ExecutorService
 
-    private var locationManager: LocationManager? = null
-    private var lastKnownLocation: Pair<Double, Double>? = null
+    private lateinit var locationClient: FusedLocationProviderClient
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
@@ -115,10 +114,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         cameraExecutor.shutdown()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -131,6 +126,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         countViews = mutableMapOf()
         val gridLayout = view.findViewById<GridLayout>(R.id.counts_grid)
         val countList = counts.entries.toList()
+
+        locationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         for ((index, count) in countList.withIndex()) {
             val countClass = count.value.name
@@ -494,10 +491,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         val builder = AlertDialog.Builder(requireContext())
         builder.setMessage("Are you sure you want to save the count?")
             .setPositiveButton("OK") { dialog, _ ->
-                if (saveTotalCount())
-                {
-                    resetTotalCount()
-                }
+                saveTotalCount()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
@@ -512,63 +506,73 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     }
 
     private fun saveTotalCount() {
-        getLastLocation(object : LocationCallback {
-            override fun onLocationReceived(location: Pair<Double, Double>) {
-                // Now you have the location, proceed with saveTotalCount logic
-                val newTree = Tree(
-                    latitude = location.first,
-                    longitude = location.second,
-                    isUploaded = false,
-                    ripe = totalCount["ripe"]?.count ?: 0,
-                    underripe = totalCount["underripe"]?.count ?: 0,
-                    unripe = totalCount["unripe"]?.count ?: 0,
-                    flower = totalCount["flower"]?.count ?: 0,
-                    abnromal = totalCount["abnormal"]?.count ?: 0
-                )
+        val locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-                treeViewModel.insert(newTree)
-            }
-
-            override fun onLocationError() {
-                // Handle error or show dialog
-                showEnableLocationDialog()
-            }
-        })
-    }
-
-    private fun getLastLocation(callback: LocationCallback) {
-        locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val lastLocation = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            if (lastLocation != null) {
-                lastKnownLocation = Pair(lastLocation.latitude, lastLocation.longitude)
-                callback.onLocationReceived(lastKnownLocation!!)
-            } else {
-                locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this)
+        if (isLocationEnabled(locationManager)) {
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                locationClient.lastLocation.addOnCompleteListener { task ->
+                    task.result?.let { location ->
+                        saveTree(location)
+                        resetTotalCount()
+                    } ?: requestLocationUpdates()
+                }
             }
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                2
-            )
-            callback.onLocationError()
+            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
 
-    override fun onLocationChanged(location: Location) {
-        lastKnownLocation = Pair(location.latitude, location.longitude)
-        locationManager?.removeUpdates(this)
+    private fun isLocationEnabled(locationManager: LocationManager): Boolean {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    interface LocationCallback {
-        fun onLocationReceived(location: Pair<Double, Double>)
-        fun onLocationError()
+    private fun saveTree(location: Location) {
+        val newTree = Tree(
+            latitude = location.latitude,
+            longitude = location.longitude,
+            isUploaded = false,
+            ripe = totalCount["ripe"]?.count ?: 0,
+            underripe = totalCount["underripe"]?.count ?: 0,
+            unripe = totalCount["unripe"]?.count ?: 0,
+            flower = totalCount["flower"]?.count ?: 0,
+            abnromal = totalCount["abnormal"]?.count ?: 0
+        )
+        treeViewModel.insert(newTree)
+        resetTotalCount()
+    }
+
+    private fun requestLocationUpdates() {
+        val locationRequest = LocationRequest()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(10000)
+            .setFastestInterval(1000)
+            .setNumUpdates(1)
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResultValue: LocationResult) {
+                locationResultValue.lastLocation?.let { location ->
+                    saveTree(location)
+                }
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED) {
+            locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+        }
     }
 
     private fun clear() {
