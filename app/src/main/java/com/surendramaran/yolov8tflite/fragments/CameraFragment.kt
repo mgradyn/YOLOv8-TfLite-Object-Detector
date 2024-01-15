@@ -9,6 +9,8 @@ import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -31,6 +33,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -56,7 +59,8 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
+class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener,
+    LocationListener {
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
     private val fragmentCameraBinding
@@ -70,6 +74,9 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private var cameraProvider: ProcessCameraProvider? = null
     private lateinit var detector: Detector
     private lateinit var cameraExecutor: ExecutorService
+
+    private var locationManager: LocationManager? = null
+    private var lastKnownLocation: Pair<Double, Double>? = null
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
@@ -88,8 +95,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         "ripe" to Count("ripe", 0),
         "abnormal" to Count("abnormal", 0)
     )
-    private var onActivityCreatedCallback: (() -> Unit)? = null
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     override fun onResume() {
         super.onResume()
@@ -505,29 +511,64 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
-    private fun saveTotalCount():Boolean {
-        val locationResult = getLastLocation()
+    private fun saveTotalCount() {
+        getLastLocation(object : LocationCallback {
+            override fun onLocationReceived(location: Pair<Double, Double>) {
+                // Now you have the location, proceed with saveTotalCount logic
+                val newTree = Tree(
+                    latitude = location.first,
+                    longitude = location.second,
+                    isUploaded = false,
+                    ripe = totalCount["ripe"]?.count ?: 0,
+                    underripe = totalCount["underripe"]?.count ?: 0,
+                    unripe = totalCount["unripe"]?.count ?: 0,
+                    flower = totalCount["flower"]?.count ?: 0,
+                    abnromal = totalCount["abnormal"]?.count ?: 0
+                )
 
-//        change to locationResult != null
-        if (locationResult == null) {
-//            val (latitude, longitude) = locationResult
+                treeViewModel.insert(newTree)
+            }
 
-            val newTree = Tree(
-                latitude = 0.3232,
-                longitude = 0.4323,
-                isUploaded = false,
-                ripe = totalCount["ripe"]?.count ?: 0,
-                underripe = totalCount["underripe"]?.count ?: 0,
-                unripe = totalCount["unripe"]?.count ?: 0,
-                flower = totalCount["flower"]?.count ?: 0,
-                abnromal = totalCount["abnormal"]?.count ?: 0
+            override fun onLocationError() {
+                // Handle error or show dialog
+                showEnableLocationDialog()
+            }
+        })
+    }
+
+    private fun getLastLocation(callback: LocationCallback) {
+        locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val lastLocation = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            if (lastLocation != null) {
+                lastKnownLocation = Pair(lastLocation.latitude, lastLocation.longitude)
+                callback.onLocationReceived(lastKnownLocation!!)
+            } else {
+                locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this)
+            }
+        } else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                2
             )
-
-            treeViewModel.insert(newTree)
-            return true
+            callback.onLocationError()
         }
-        showEnableLocationDialog()
-        return false
+    }
+
+    override fun onLocationChanged(location: Location) {
+        lastKnownLocation = Pair(location.latitude, location.longitude)
+        locationManager?.removeUpdates(this)
+    }
+
+    interface LocationCallback {
+        fun onLocationReceived(location: Pair<Double, Double>)
+        fun onLocationError()
     }
 
     private fun clear() {
@@ -553,26 +594,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
-    private fun getLastLocation(): Pair<Double, Double>? {
-        var locationResult: Pair<Double, Double>? = null
 
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        val latitude = it.latitude
-                        val longitude = it.longitude
-                        locationResult = Pair(latitude, longitude)
-                    }
-                }
-        }
-        return locationResult
-    }
 
     companion object {
         private const val TAG = "Camera"
@@ -582,4 +604,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     }
+
+
 }

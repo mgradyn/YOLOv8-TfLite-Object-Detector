@@ -42,7 +42,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Latitude:"/>
+                android:text="Latitude: "/>
 
             <TextView
                 android:id="@+id/textLatitude"
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Longitude:"/>
+                android:text="Longitude: "/>
 
             <TextView
                 android:id="@+id/textLongitude"
@@ -87,7 +87,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ripe:"/>
+                    android:text="Ripe: "/>
                 <TextView
                     android:id="@+id/textRipe"
                     android:layout_width="wrap_content"
@@ -95,7 +95,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Underripe:"/>
+                    android:text="Underripe: "/>
                 <TextView
                     android:id="@+id/textUnderripe"
                     android:layout_width="wrap_content"
@@ -103,7 +103,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Unripe:"/>
+                    android:text="Unripe: "/>
                 <TextView
                     android:id="@+id/textUnripe"
                     android:layout_width="wrap_content"
@@ -111,7 +111,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Flower:"/>
+                    android:text="Flower: "/>
                 <TextView
                     android:id="@+id/textFlower"
                     android:layout_width="wrap_content"
@@ -119,7 +119,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Abnormal:"/>
+                    android:text="Abnormal: "/>
                 <TextView
                     android:id="@+id/textAbnormal"
                     android:layout_width="wrap_content"
