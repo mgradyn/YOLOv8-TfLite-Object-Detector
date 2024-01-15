@@ -23,9 +23,109 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textContent"
+            android:id="@+id/textlocationTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"/>
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:text="Location"/>
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="5"
+            android:layout_marginTop="8dp"
+            >
+            <!-- Add your data fields here -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Latitude:"/>
+
+            <TextView
+                android:id="@+id/textLatitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Longitude:"/>
+
+            <TextView
+                android:id="@+id/textLongitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </GridLayout>
+
+        <LinearLayout
+            android:id="@+id/countDetailContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textCountTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:text="Count"/>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="5"
+                android:layout_marginTop="8dp"
+                >
+                <!-- Add your data fields here -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ripe:"/>
+                <TextView
+                    android:id="@+id/textRipe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Underripe:"/>
+                <TextView
+                    android:id="@+id/textUnderripe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Unripe:"/>
+                <TextView
+                    android:id="@+id/textUnripe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Flower:"/>
+                <TextView
+                    android:id="@+id/textFlower"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Abnormal:"/>
+                <TextView
+                    android:id="@+id/textAbnormal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </GridLayout>
+        </LinearLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
