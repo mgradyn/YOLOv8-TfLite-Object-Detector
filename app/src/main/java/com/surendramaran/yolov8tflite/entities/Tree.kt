@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 import java.util.UUID
 
 @Entity(tableName = "tree_table")
-data class Tree (val latitude: Double,
+data class Tree (val name: String,
+                 val latitude: Double,
                  val longitude: Double,
                  val isUploaded: Boolean,
                  val ripe: Int,

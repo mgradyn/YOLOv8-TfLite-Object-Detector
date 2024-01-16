@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Button
+import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -499,9 +500,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private fun showSaveCountDialog() {
         val builder = AlertDialog.Builder(requireContext())
-        builder.setMessage("Are you sure you want to save the count?")
+
+        val nameEditText = EditText(requireContext())
+        nameEditText.hint = "Enter tree name"
+
+        builder.setView(nameEditText)
+            .setMessage("Are you sure you want to save the count?")
             .setPositiveButton("OK") { dialog, _ ->
-                saveTotalCount()
+                val enteredName = nameEditText.text.toString()
+                saveTotalCount(enteredName)
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
@@ -515,7 +522,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
-    private fun saveTotalCount() {
+    private fun saveTotalCount(enteredName: String) {
         val locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         if (isLocationEnabled(locationManager)) {
@@ -529,9 +536,9 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             ) {
                 locationClient.lastLocation.addOnCompleteListener { task ->
                     task.result?.let { location ->
-                        saveTree(location)
+                        saveTree(enteredName, location)
                         resetTotalCount()
-                    } ?: requestLocationUpdates()
+                    } ?: requestLocationUpdates(enteredName)
                 }
             }
         } else {
@@ -544,8 +551,9 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    private fun saveTree(location: Location) {
+    private fun saveTree(enteredName: String, location: Location) {
         val newTree = Tree(
+            name = enteredName,
             latitude = location.latitude,
             longitude = location.longitude,
             isUploaded = false,
@@ -559,7 +567,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         resetTotalCount()
     }
 
-    private fun requestLocationUpdates() {
+    private fun requestLocationUpdates(enteredName: String) {
         val locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(10000)
@@ -569,7 +577,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResultValue: LocationResult) {
                 locationResultValue.lastLocation?.let { location ->
-                    saveTree(location)
+                    saveTree(enteredName, location)
                 }
             }
         }

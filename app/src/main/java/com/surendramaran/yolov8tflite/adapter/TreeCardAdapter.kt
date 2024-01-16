@@ -42,7 +42,7 @@ class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>()
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val item = cardItems?.get(position)
         item?.let {
-            holder.textTitle.text = it.id
+            holder.textTitle.text = it.name
             holder.textLatitude.text = it.latitude.toString()
             holder.textLongitude.text = it.longitude.toString()
             holder.textRipe.text = it.ripe.toString()
