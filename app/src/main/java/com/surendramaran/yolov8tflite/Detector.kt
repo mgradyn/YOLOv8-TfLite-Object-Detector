@@ -29,6 +29,7 @@ class Detector(
     var numThreadsUsed: Int = 4,
     var maxResults: Int = 10,
     var utilizeGPU: Boolean = false,
+    var forceGPU: Boolean = false,
 ) {
 
     private var interpreter: InterpreterApi? = null
@@ -54,7 +55,7 @@ class Detector(
                     options.apply {
                         runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
                         numThreads = numThreadsUsed
-                        if (utilizeGPU && useGpu) addDelegateFactory(GpuDelegateFactory())
+                        if (utilizeGPU && (useGpu || forceGPU)) addDelegateFactory(GpuDelegateFactory())
                     }
 
                     try {
@@ -193,13 +194,9 @@ class Detector(
     }
 
     companion object {
-//        const val DELEGATE_CPU = 0
-//        const val DELEGATE_GPU = 1
         private const val INPUT_MEAN = 0f
         private const val INPUT_STANDARD_DEVIATION = 255f
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
         private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.5F
-        private const val IOU_THRESHOLD = 0.5F
     }
 }

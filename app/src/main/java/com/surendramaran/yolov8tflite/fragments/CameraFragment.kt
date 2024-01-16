@@ -301,6 +301,11 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                     /* no op */
                 }
             }
+
+        fragmentCameraBinding.bottomSheetLayout.checkBoxForceGPU.setOnCheckedChangeListener { _, isChecked ->
+            detector.forceGPU = isChecked
+            updateControlsUi()
+        }
     }
 
     private fun updateControlsUi() {
