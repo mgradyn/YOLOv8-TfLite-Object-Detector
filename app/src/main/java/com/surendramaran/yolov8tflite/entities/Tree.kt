@@ -14,4 +14,5 @@ data class Tree (val name: String,
                  val unripe: Int,
                  val flower: Int,
                  val abnromal: Int,
+                 val total: Int,
                  @PrimaryKey val id: String = UUID.randomUUID().toString())

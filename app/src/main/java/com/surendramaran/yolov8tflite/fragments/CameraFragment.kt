@@ -566,7 +566,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             underripe = totalCount["underripe"]?.count ?: 0,
             unripe = totalCount["unripe"]?.count ?: 0,
             flower = totalCount["flower"]?.count ?: 0,
-            abnromal = totalCount["abnormal"]?.count ?: 0
+            abnromal = totalCount["abnormal"]?.count ?: 0,
+            total = totalCount.values.sumOf { it.count }
         )
         treeViewModel.insert(newTree)
         resetTotalCount()

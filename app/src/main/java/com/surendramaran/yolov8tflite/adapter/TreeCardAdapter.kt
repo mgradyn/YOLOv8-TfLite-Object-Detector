@@ -30,6 +30,7 @@ class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>()
         val textUnripe: TextView = itemView.findViewById(R.id.textUnripe)
         val textFlower: TextView = itemView.findViewById(R.id.textFlower)
         val textAbnormal: TextView = itemView.findViewById(R.id.textAbnormal)
+        val textTotal: TextView = itemView.findViewById(R.id.textTotal)
         val countDetailContainer: LinearLayout = itemView.findViewById(R.id.countDetailContainer)
     }
 
@@ -50,6 +51,7 @@ class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>()
             holder.textUnripe.text = it.unripe.toString()
             holder.textFlower.text = it.flower.toString()
             holder.textAbnormal.text = it.abnromal.toString()
+            holder.textTotal.text = it.total.toString()
 
             // Add click listener to handle expansion/collapse
             holder.cardView.setOnClickListener {
