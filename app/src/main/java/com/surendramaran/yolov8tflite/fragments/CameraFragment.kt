@@ -124,7 +124,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         savedInstanceState: Bundle?
     ): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
-
+        Log.d("CameraTestOnCreate", "onCreateView")
         val view = fragmentCameraBinding.countContainer
 
         countViews = mutableMapOf()
