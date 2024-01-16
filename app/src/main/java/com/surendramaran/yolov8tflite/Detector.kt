@@ -9,6 +9,8 @@ import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.InterpreterApi
 import org.tensorflow.lite.gpu.GpuDelegateFactory
+import org.tensorflow.lite.gpu.CompatibilityList
+import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
 import org.tensorflow.lite.support.common.ops.NormalizeOp
@@ -46,28 +48,41 @@ class Detector(
 
     fun setup() {
         try {
+            val compatList = CompatibilityList()
             val model = FileUtil.loadMappedFile(context, modelPath)
             val options = Interpreter.Options()
 
-            TfLiteGpu.isGpuDelegateAvailable(context)
-                .addOnSuccessListener { useGpu ->
-                    options.apply {
-                        runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
-                        numThreads = numThreadsUsed
-                        if (utilizeGPU && useGpu) addDelegateFactory(GpuDelegateFactory())
-                    }
+            options.apply{
+                this.runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
+                if(utilizeGPU && compatList.isDelegateSupportedOnThisDevice){
+                    val delegateOptions = compatList.bestOptionsForThisDevice
+                    this.addDelegate(GpuDelegate(delegateOptions))
+                } else {
+                    this.setNumThreads(numThreadsUsed)
+                }
+            }
+            interpreter = Interpreter(model, options)
+            initializeInterpreter()
+            loadLabels()
 
-                    try {
-                        interpreter = Interpreter(model, options)
-                        initializeInterpreter()
-                        loadLabels()
-                    } catch (e: Exception) {
-                        Log.e("InterpreterError", "Error creating TensorFlow Lite interpreter: ${e.message}")
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e("GpuDelegateError", "Error checking GPU delegate availability: ${e.message}")
-                }
+//            TfLiteGpu.isGpuDelegateAvailable(context)
+//                .addOnSuccessListener { useGpu ->
+//                    options.apply {
+//                        runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
+//                        numThreads = numThreadsUsed
+//                        if (utilizeGPU && useGpu) addDelegateFactory(GpuDelegateFactory())
+//                    }
+//
+//                    try {
+//
+//
+//                    } catch (e: Exception) {
+//                        Log.e("InterpreterError", "Error creating TensorFlow Lite interpreter: ${e.message}")
+//                    }
+//                }
+//                .addOnFailureListener { e ->
+//                    Log.e("GpuDelegateError", "Error checking GPU delegate availability: ${e.message}")
+//                }
         } catch (e: Exception) {
             Log.e("SetupError", "Error setting up TensorFlow Lite: ${e.message}")
         }
