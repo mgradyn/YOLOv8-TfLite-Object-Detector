@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Tree::class], version = 1)
+@Database(entities = [Tree::class], version = 2)
 abstract class TreeDatabase : RoomDatabase() {
 
     abstract fun treeDao(): TreeDao

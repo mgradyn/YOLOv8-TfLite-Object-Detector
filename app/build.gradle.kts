@@ -92,4 +92,6 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.9.2")
+
 }

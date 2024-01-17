@@ -29,6 +29,7 @@
     <string name="reset_total_count">Reset</string>
     <string name="save_total_count">Save</string>
     <string name="label_forceGPU">Force GPU (Danger)</string>
+    <string name="export_to_csv">Export to CSV</string>
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>
