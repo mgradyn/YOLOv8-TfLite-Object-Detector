@@ -22,6 +22,13 @@
             android:textSize="18sp"
             android:textStyle="bold"/>
 
+        <Button
+            android:id="@+id/uploadButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/upload"/>
+
         <TextView
             android:id="@+id/textlocationTitle"
             android:layout_width="match_parent"
@@ -29,7 +36,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp"
-            android:text="Location"/>
+            android:text="@string/location"/>
 
         <GridLayout
             android:layout_width="match_parent"
@@ -42,7 +49,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Latitude: "/>
+                android:text="@string/latitude"/>
 
             <TextView
                 android:id="@+id/textLatitude"
@@ -52,7 +59,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Longitude: "/>
+                android:text="@string/longitude"/>
 
             <TextView
                 android:id="@+id/textLongitude"
@@ -74,7 +81,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginTop="16dp"
-                android:text="Count"/>
+                android:text="@string/count"/>
 
             <GridLayout
                 android:layout_width="match_parent"
@@ -87,7 +94,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ripe: "/>
+                    android:text="@string/ripe"/>
                 <TextView
                     android:id="@+id/textRipe"
                     android:layout_width="wrap_content"
@@ -95,7 +102,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Underripe: "/>
+                    android:text="@string/underripe"/>
                 <TextView
                     android:id="@+id/textUnderripe"
                     android:layout_width="wrap_content"
@@ -103,7 +110,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Unripe: "/>
+                    android:text="@string/unripe"/>
                 <TextView
                     android:id="@+id/textUnripe"
                     android:layout_width="wrap_content"
@@ -111,7 +118,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Flower: "/>
+                    android:text="@string/flower"/>
                 <TextView
                     android:id="@+id/textFlower"
                     android:layout_width="wrap_content"
@@ -119,7 +126,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Abnormal: "/>
+                    android:text="@string/abnormal"/>
                 <TextView
                     android:id="@+id/textAbnormal"
                     android:layout_width="wrap_content"
@@ -127,7 +134,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Total: "/>
+                    android:text="@string/total"/>
                 <TextView
                     android:id="@+id/textTotal"
                     android:layout_width="wrap_content"

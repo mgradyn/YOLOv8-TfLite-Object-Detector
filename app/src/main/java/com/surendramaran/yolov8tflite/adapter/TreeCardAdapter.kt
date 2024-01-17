@@ -3,17 +3,19 @@ package com.surendramaran.yolov8tflite.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.surendramaran.yolov8tflite.R
+import com.surendramaran.yolov8tflite.SignInCallback
 import com.surendramaran.yolov8tflite.entities.Tree
-import com.surendramaran.yolov8tflite.model.CardItem
 
-class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
+class TreeCardAdapter(private val signInCallback: SignInCallback) : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
 
     private var cardItems: List<Tree>? = null
+    private val RC_SIGN_IN: Int = 9001
 
     fun setCardItems(items: List<Tree>) {
         cardItems = items
@@ -32,6 +34,7 @@ class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>()
         val textAbnormal: TextView = itemView.findViewById(R.id.textAbnormal)
         val textTotal: TextView = itemView.findViewById(R.id.textTotal)
         val countDetailContainer: LinearLayout = itemView.findViewById(R.id.countDetailContainer)
+        val uploadButton: Button = itemView.findViewById((R.id.uploadButton))
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
@@ -53,10 +56,17 @@ class TreeCardAdapter() : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>()
             holder.textAbnormal.text = it.abnromal.toString()
             holder.textTotal.text = it.total.toString()
 
+            holder.uploadButton.visibility = if (!it.isUploaded) View.VISIBLE else View.GONE
+            holder.uploadButton.isEnabled = !it.isUploaded
+
             // Add click listener to handle expansion/collapse
             holder.cardView.setOnClickListener {
                 val expanded = holder.countDetailContainer.visibility == View.VISIBLE
                 holder.countDetailContainer.visibility = if (expanded) View.GONE else View.VISIBLE
+            }
+
+            holder.uploadButton.setOnClickListener {
+                signInCallback.onSignIn()
             }
         }
     }

@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
             .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
     }
 
-
     private fun manageDrawerBehavior() {
         val menuButton = findViewById<ImageView>(R.id.menuBtn)
         menuButton.setOnClickListener {

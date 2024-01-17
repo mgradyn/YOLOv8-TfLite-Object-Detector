@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "369320849354",
+    "project_id": "palm-9aadd",
+    "storage_bucket": "palm-9aadd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369320849354:android:01b75b8132f42c3d156933",
+        "android_client_info": {
+          "package_name": "com.surendramaran.yolov8tflite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369320849354-4o6p57mjfsdqqjsutttjbfr9fvfmc20v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.surendramaran.yolov8tflite",
+            "certificate_hash": "15a70cd91ee12a3a1027171295c7b4fd369e4d08"
+          }
+        },
+        {
+          "client_id": "369320849354-6age63inu8gqtteqv0ih98drg1melvt6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEkjybqYC1cor-hWYqSHbKm-szwo2OKU4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369320849354-6age63inu8gqtteqv0ih98drg1melvt6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
