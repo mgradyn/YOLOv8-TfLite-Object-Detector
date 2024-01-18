@@ -15,6 +15,9 @@ class TreeViewModel(private val repository: TreeRepository) : ViewModel() {
     fun insert(tree: Tree) = viewModelScope.launch {
         repository.insert(tree)
     }
+    fun update(tree: Tree) = viewModelScope.launch {
+        repository.update(tree)
+    }
 }
 
 class TreeViewModelFactory(private val repository: TreeRepository) : ViewModelProvider.Factory {

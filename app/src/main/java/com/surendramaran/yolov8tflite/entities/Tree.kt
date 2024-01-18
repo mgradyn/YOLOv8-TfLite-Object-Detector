@@ -2,9 +2,11 @@ package com.surendramaran.yolov8tflite.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.firebase.database.IgnoreExtraProperties
 import java.util.UUID
 
 @Entity(tableName = "tree_table")
+@IgnoreExtraProperties
 data class Tree (val name: String,
                  val latitude: Double,
                  val longitude: Double,

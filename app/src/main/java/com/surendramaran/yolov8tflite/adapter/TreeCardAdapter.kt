@@ -8,14 +8,18 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import com.surendramaran.yolov8tflite.FirebaseCallback
 import com.surendramaran.yolov8tflite.R
 import com.surendramaran.yolov8tflite.SignInCallback
 import com.surendramaran.yolov8tflite.entities.Tree
 
-class TreeCardAdapter(private val signInCallback: SignInCallback) : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
+
+class TreeCardAdapter(
+    private val signInCallback: SignInCallback,
+    private val firebaseCallback: FirebaseCallback
+) : RecyclerView.Adapter<TreeCardAdapter.CardViewHolder>() {
 
     private var cardItems: List<Tree>? = null
-    private val RC_SIGN_IN: Int = 9001
 
     fun setCardItems(items: List<Tree>) {
         cardItems = items
@@ -46,6 +50,7 @@ class TreeCardAdapter(private val signInCallback: SignInCallback) : RecyclerView
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val item = cardItems?.get(position)
         item?.let {
+            val tree = it
             holder.textTitle.text = it.name
             holder.textLatitude.text = it.latitude.toString()
             holder.textLongitude.text = it.longitude.toString()
@@ -59,14 +64,14 @@ class TreeCardAdapter(private val signInCallback: SignInCallback) : RecyclerView
             holder.uploadButton.visibility = if (!it.isUploaded) View.VISIBLE else View.GONE
             holder.uploadButton.isEnabled = !it.isUploaded
 
-            // Add click listener to handle expansion/collapse
+            holder.uploadButton.setOnClickListener {
+                signInCallback.onSignIn()
+                firebaseCallback.addData(tree)
+            }
+
             holder.cardView.setOnClickListener {
                 val expanded = holder.countDetailContainer.visibility == View.VISIBLE
                 holder.countDetailContainer.visibility = if (expanded) View.GONE else View.VISIBLE
-            }
-
-            holder.uploadButton.setOnClickListener {
-                signInCallback.onSignIn()
             }
         }
     }
