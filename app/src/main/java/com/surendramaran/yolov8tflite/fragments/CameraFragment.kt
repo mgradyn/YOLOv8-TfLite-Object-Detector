@@ -61,10 +61,14 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import android.media.AudioManager
+import android.media.SoundPool
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
-    private var _fragmentCameraBinding: FragmentCameraBinding? = null
+    private var soundPool: SoundPool? = null
+    private var soundID: Int = 0
 
+    private var _fragmentCameraBinding: FragmentCameraBinding? = null
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
 
@@ -116,6 +120,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         detector.destroy()
         detector.clear()
         cameraExecutor.shutdown()
+        soundPool?.release()
+        soundPool = null
     }
 
     override fun onCreateView(
@@ -132,6 +138,9 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         val countList = counts.entries.toList()
 
         locationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
+        soundPool = SoundPool(1, AudioManager.STREAM_MUSIC, 0)
+        soundID = soundPool!!.load(requireContext(), R.raw.shortding, 1)
 
         for ((index, count) in countList.withIndex()) {
             val countClass = count.value.name
@@ -203,6 +212,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
         val countButton = view.findViewById<Button>(R.id.countBtn)
         countButton?.setOnClickListener {
+            soundPool?.play(soundID, 0.5f, 0.5f, 1, 0, 1f)
             sumCounts()
         }
 
@@ -441,6 +451,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     private fun addCountPerClassListener(count: MutableMap.MutableEntry<String, Count>)
             : View.OnClickListener {
         return View.OnClickListener {
+            soundPool?.play(soundID, 0.5f, 0.5f, 1, 0, 1f)
             val totalCountItem = totalCount[count.key]
             if (totalCountItem != null) {
                 totalCountItem.count += count.value.count
@@ -621,7 +632,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             }
         }
     }
-
 
 
     companion object {
