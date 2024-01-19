@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "YOLOv8 TfLite"
+rootProject.name = "Palm Oil Counter"
 include(":app")
