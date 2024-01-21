@@ -20,6 +20,17 @@
         android:layout_height="match_parent"
         android:padding="16dp"/>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/syncButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/baseline_cloud_sync_24"
+        android:contentDescription="@string/sync" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

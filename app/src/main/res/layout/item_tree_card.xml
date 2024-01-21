@@ -29,6 +29,16 @@
             android:layout_marginTop="16dp"
             android:text="@string/upload"/>
 
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/delete"
+            android:backgroundTint="@color/red_material"
+            android:textColor="@android:color/white"
+        />
+
         <TextView
             android:id="@+id/textlocationTitle"
             android:layout_width="match_parent"

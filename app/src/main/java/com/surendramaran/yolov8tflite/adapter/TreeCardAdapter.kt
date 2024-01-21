@@ -1,5 +1,6 @@
 package com.surendramaran.yolov8tflite.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ class TreeCardAdapter(
 
     private var cardItems: List<Tree>? = null
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setCardItems(items: List<Tree>) {
         cardItems = items
         notifyDataSetChanged()
@@ -38,7 +40,8 @@ class TreeCardAdapter(
         val textAbnormal: TextView = itemView.findViewById(R.id.textAbnormal)
         val textTotal: TextView = itemView.findViewById(R.id.textTotal)
         val countDetailContainer: LinearLayout = itemView.findViewById(R.id.countDetailContainer)
-        val uploadButton: Button = itemView.findViewById((R.id.uploadButton))
+        val uploadButton: Button = itemView.findViewById(R.id.uploadButton)
+        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
@@ -67,6 +70,10 @@ class TreeCardAdapter(
             holder.uploadButton.setOnClickListener {
                 signInCallback.onSignIn()
                 firebaseCallback.addData(tree)
+            }
+
+            holder.deleteButton.setOnClickListener {
+                firebaseCallback.deleteData(tree)
             }
 
             holder.cardView.setOnClickListener {
