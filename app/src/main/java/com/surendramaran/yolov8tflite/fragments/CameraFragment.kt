@@ -1,5 +1,6 @@
 package com.surendramaran.yolov8tflite.fragments
 
+import FileUtils.Companion.saveTree
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -10,8 +11,9 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.location.Location
 import android.location.LocationManager
+import android.media.AudioManager
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -51,7 +53,6 @@ import com.surendramaran.yolov8tflite.Detector
 import com.surendramaran.yolov8tflite.R
 import com.surendramaran.yolov8tflite.TreeApplication
 import com.surendramaran.yolov8tflite.databinding.FragmentCameraBinding
-import com.surendramaran.yolov8tflite.entities.Tree
 import com.surendramaran.yolov8tflite.model.Count
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,8 +62,6 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import android.media.AudioManager
-import android.media.SoundPool
 
 class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorListener {
     private var soundPool: SoundPool? = null
@@ -552,7 +551,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             ) {
                 locationClient.lastLocation.addOnCompleteListener { task ->
                     task.result?.let { location ->
-                        saveTree(enteredName, location)
+                        saveTree(enteredName, location, totalCount, treeViewModel)
                         resetTotalCount()
                     } ?: requestLocationUpdates(enteredName)
                 }
@@ -567,23 +566,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    private fun saveTree(enteredName: String, location: Location) {
-        val newTree = Tree(
-            name = enteredName,
-            latitude = location.latitude,
-            longitude = location.longitude,
-            isUploaded = false,
-            ripe = totalCount["ripe"]?.count ?: 0,
-            underripe = totalCount["underripe"]?.count ?: 0,
-            unripe = totalCount["unripe"]?.count ?: 0,
-            flower = totalCount["flower"]?.count ?: 0,
-            abnromal = totalCount["abnormal"]?.count ?: 0,
-            total = totalCount.values.sumOf { it.count }
-        )
-        treeViewModel.insert(newTree)
-        resetTotalCount()
-    }
-
     private fun requestLocationUpdates(enteredName: String) {
         val locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -594,7 +576,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResultValue: LocationResult) {
                 locationResultValue.lastLocation?.let { location ->
-                    saveTree(enteredName, location)
+                    saveTree(enteredName, location, totalCount, treeViewModel)
+                    resetTotalCount()
                 }
             }
         }

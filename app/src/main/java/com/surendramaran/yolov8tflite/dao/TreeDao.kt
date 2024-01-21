@@ -25,4 +25,7 @@ interface TreeDao {
 
     @Query("select * from tree_table")
     fun getAllTrees(): Flow<List<Tree>>
+
+    @Query("SELECT id FROM tree_table")
+    fun getAllTreeIds(): Flow<List<String>>
 }

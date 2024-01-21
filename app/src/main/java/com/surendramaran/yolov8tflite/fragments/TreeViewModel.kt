@@ -18,6 +18,12 @@ class TreeViewModel(private val repository: TreeRepository) : ViewModel() {
     fun update(tree: Tree) = viewModelScope.launch {
         repository.update(tree)
     }
+    fun getAllTreeIds(): LiveData<List<String>> {
+        return repository.getAllTreeIds().asLiveData()
+    }
+    fun delete(tree: Tree) = viewModelScope.launch {
+        repository.delete(tree)
+    }
 }
 
 class TreeViewModelFactory(private val repository: TreeRepository) : ViewModelProvider.Factory {

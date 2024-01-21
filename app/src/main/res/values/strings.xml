@@ -42,6 +42,8 @@
     <string name="abnormal">Abnormal:</string>
     <string name="total">Total:</string>
     <string name="default_web_client_id">369320849354-6age63inu8gqtteqv0ih98drg1melvt6.apps.googleusercontent.com</string>
+    <string name="sync">sync</string>
+    <string name="delete">Delete</string>
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>

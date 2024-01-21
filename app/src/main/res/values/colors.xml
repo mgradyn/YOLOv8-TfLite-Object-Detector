@@ -11,4 +11,5 @@
     <color name="icFocused">#DDFFFFFF</color>
     <color name="icPressed">#AAFFFFFF</color>
     <color name="selected_sidebar_background">#8be8cb</color>
+    <color name="red_material">#FF7F7F</color>
 </resources>
