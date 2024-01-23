@@ -100,16 +100,20 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         "abnormal" to Count("abnormal", 0)
     )
 
+
     override fun onResume() {
         super.onResume()
-        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
-        detector.setup()
         setupCamera()
+        detector.clear()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        detector.clear()
     }
 
     override fun onPause() {
         super.onPause()
-        detector.clear()
         cameraProvider?.unbindAll()
         shutdownAndAwaitTermination(cameraExecutor)
     }
@@ -135,7 +139,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         savedInstanceState: Bundle?
     ): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
-//        Log.d("CameraTestOnCreate", "onCreateView")
+        Log.d("CameraTestOnCreate", "onCreateView")
         val view = fragmentCameraBinding.countContainer
 
         countViews = mutableMapOf()
