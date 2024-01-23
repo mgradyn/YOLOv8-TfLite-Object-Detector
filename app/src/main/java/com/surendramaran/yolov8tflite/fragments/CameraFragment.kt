@@ -102,8 +102,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     override fun onResume() {
         super.onResume()
-        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
-        detector.setup()
+//        detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
+//        detector.setup()
         setupCamera()
     }
 
