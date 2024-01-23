@@ -108,10 +108,6 @@ class Detector(
         interpreter?.close()
     }
 
-    fun start() {
-        this.setup()
-    }
-
     fun detect(frame: Bitmap) {
         if (interpreter == null)
         {
