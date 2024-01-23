@@ -28,7 +28,7 @@ class Detector(
     var iouThreshold: Float = 0.5F,
     var numThreadsUsed: Int = 4,
     var maxResults: Int = 10,
-    var utilizeGPU: Boolean = false,
+    var utilizeGPU: Boolean = true,
     var forceGPU: Boolean = false,
 ) {
 

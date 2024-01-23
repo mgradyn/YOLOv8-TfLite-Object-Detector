@@ -104,6 +104,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     override fun onResume() {
         super.onResume()
         setupCamera()
+        detector.clear()
     }
 
     override fun onPause() {
@@ -116,11 +117,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         _fragmentCameraBinding = null
         super.onDestroyView()
         uiScope.cancel()
-        detector.destroy()
         detector.clear()
         cameraExecutor.shutdown()
         soundPool?.release()
         soundPool = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        detector.destroy()
     }
 
     override fun onCreateView(
@@ -298,7 +303,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
         // When clicked, change the underlying hardware used for inference. Current options are CPU
         // and GPU
-        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
+        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(1, false)
         fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
