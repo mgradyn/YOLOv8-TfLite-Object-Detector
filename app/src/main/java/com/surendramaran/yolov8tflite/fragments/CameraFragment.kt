@@ -104,13 +104,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
     override fun onResume() {
         super.onResume()
         setupCamera()
-        detector.clear()
     }
 
     override fun onPause() {
         super.onPause()
         cameraProvider?.unbindAll()
         shutdownAndAwaitTermination(cameraExecutor)
+        uiScope.cancel()
+        detector.clear()
+        cameraExecutor.shutdown()
     }
 
     override fun onDestroyView() {
@@ -134,7 +136,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         savedInstanceState: Bundle?
     ): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
-        Log.d("CameraTestOnCreate", "onCreateView")
         val view = fragmentCameraBinding.countContainer
 
         countViews = mutableMapOf()
