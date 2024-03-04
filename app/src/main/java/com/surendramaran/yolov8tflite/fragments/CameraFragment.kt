@@ -33,6 +33,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -47,6 +48,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.slider.Slider
 import com.surendramaran.yolov8tflite.BoundingBox
 import com.surendramaran.yolov8tflite.Constants
 import com.surendramaran.yolov8tflite.Detector
@@ -77,6 +79,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var cameraProvider: ProcessCameraProvider? = null
+    private lateinit var camera: Camera
     private lateinit var detector: Detector
     private lateinit var cameraExecutor: ExecutorService
 
@@ -214,6 +217,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         fragmentCameraBinding.viewFinder.post {
             setupCamera()
         }
+
+        val zoomSlider: Slider = view.findViewById(R.id.zoomSlider)
+        zoomSlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                val zoomRatio = value.coerceIn(1f, 5f)
+                camera.cameraControl.setZoomRatio(zoomRatio)
+            }
+        }
+
 
         val countButton = view.findViewById<Button>(R.id.countBtn)
         countButton?.setOnClickListener {
@@ -369,7 +381,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
         cameraProvider.unbindAll()
         try {
-            cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+            camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
         } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
