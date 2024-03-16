@@ -171,6 +171,9 @@ class TreeListFragment : Fragment() {
                     Toast.makeText(requireActivity(), "Fail to upload data $e", Toast.LENGTH_SHORT).show()
                     Log.d("failed firestore", e.toString());
                 }
+
+
+
         }
     }
 
@@ -249,6 +252,38 @@ class TreeListFragment : Fragment() {
             syncTrees()
         }
     }
+
+//    private fun setCategoryCount() {
+//        if (mAuth.currentUser != null) {
+//            val categoryDict = mutableMapOf(
+//                "ripe" to 0,
+//                "underripe" to 0,
+//                "unripe" to 0,
+//                "flower" to 0,
+//                "abnormal" to 0
+//            )
+//
+//            val getQuery = db.collection("category_count")
+//
+//            getQuery.get()
+//                .addOnSuccessListener {res ->
+//                    for (doc in res) {
+//                        val id = doc.getString("id") ?: ""
+//                        val totalCount = doc.getLong("total_count")?.toInt()?: 0
+//                        categoryDict[id] = totalCount
+//                    }
+//                }
+//                .addOnFailureListener { e ->
+//                    progressBar.visibility = View.GONE
+//                    Toast.makeText(requireActivity(), "failed to get count", Toast.LENGTH_SHORT)
+//                        .show()
+//                    Log.d("failed to get count", e.toString())
+//                }
+//
+//
+//            val setQuery =
+//        }
+//    }
 
     private fun syncTrees() {
         if (mAuth.currentUser != null) {
