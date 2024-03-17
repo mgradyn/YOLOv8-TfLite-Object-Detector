@@ -61,7 +61,7 @@ class TreeCardAdapter(
             holder.textUnderripe.text = it.underripe.toString()
             holder.textUnripe.text = it.unripe.toString()
             holder.textFlower.text = it.flower.toString()
-            holder.textAbnormal.text = it.abnromal.toString()
+            holder.textAbnormal.text = it.abnormal.toString()
             holder.textTotal.text = it.total.toString()
 
             holder.uploadButton.visibility = if (!it.isUploaded) View.VISIBLE else View.GONE

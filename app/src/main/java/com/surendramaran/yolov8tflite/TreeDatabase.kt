@@ -3,12 +3,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.surendramaran.yolov8tflite.database.TreeDao
 import com.surendramaran.yolov8tflite.entities.Tree
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(entities = [Tree::class], version = 2)
 abstract class TreeDatabase : RoomDatabase() {
@@ -62,7 +59,7 @@ abstract class TreeDatabase : RoomDatabase() {
 //                underripe = 0,
 //                unripe = 0,
 //                flower = 0,
-//                abnromal = 0
+//                abnormal = 0
 //            )
 //
 //            treeDao.insert(newTree)
