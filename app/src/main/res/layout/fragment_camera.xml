@@ -121,6 +121,160 @@
                     android:contentDescription="@string/save_total_count" />
             </RelativeLayout>
 
+            <RelativeLayout
+                android:id="@+id/countButtonsBottomLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="85dp"
+                app:layout_anchor="@id/counts_grid"
+                app:layout_anchorGravity="bottom|center_horizontal">
+
+                <LinearLayout
+                    android:id="@+id/buttonSet1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginStart="70dp"
+                    android:alpha="0.7"
+                    android:background="@drawable/button_adjustment_3"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageButton
+                        android:id="@+id/button_minus1"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_minus"
+                        android:backgroundTint="@color/uranian_blue"
+                        android:textColor="@android:color/black" />
+
+                    <ImageButton
+                        android:id="@+id/button_plus1"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_plus"
+                        android:backgroundTint="@color/uranian_blue"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/buttonSet2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_centerHorizontal="true"
+                    android:alpha="0.7"
+                    android:background="@drawable/button_adjustment_1"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageButton
+                        android:id="@+id/button_minus2"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_minus"
+                        android:backgroundTint="@color/cambridge_green"
+                        android:textColor="@android:color/black" />
+
+                    <ImageButton
+                        android:id="@+id/button_plus2"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_plus"
+                        android:backgroundTint="@color/cambridge_green"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/buttonSet3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginEnd="70dp"
+                    android:layout_alignParentEnd="true"
+                    android:alpha="0.7"
+                    android:background="@drawable/button_adjustment_4"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageButton
+                        android:id="@+id/button_minus3"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_minus"
+                        android:backgroundTint="@color/mustard"
+                        android:textColor="@android:color/black" />
+
+                    <ImageButton
+                        android:id="@+id/button_plus3"
+                        android:layout_width="40dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_plus"
+                        android:backgroundTint="@color/mustard"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/countButtonsBottomLayout_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="85dp"
+                app:layout_anchor="@id/counts_grid"
+                app:layout_anchorGravity="bottom|center_horizontal">
+
+                <LinearLayout
+                    android:id="@+id/buttonSet4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="10dp"
+                    android:alpha="0.7"
+                    android:background="@drawable/button_adjustment_2"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageButton
+                        android:id="@+id/button_plus4"
+                        android:layout_width="50dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_plus"
+                        android:backgroundTint="@color/lapis_lazuli"
+                        android:textColor="@android:color/black" />
+
+                    <ImageButton
+                        android:id="@+id/button_minus4"
+                        android:layout_width="50dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_minus"
+                        android:backgroundTint="@color/lapis_lazuli"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/buttonSet54"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="10dp"
+                    android:layout_alignParentEnd="true"
+                    android:alpha="0.7"
+                    android:background="@drawable/button_adjustment_5"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageButton
+                        android:id="@+id/button_plus5"
+                        android:layout_width="50dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_plus"
+                        android:backgroundTint="@color/old_rose"
+                        android:textColor="@android:color/black" />
+                    <ImageButton
+                        android:id="@+id/button_minus5"
+                        android:layout_width="50dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_minus"
+                        android:backgroundTint="@color/old_rose"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+            </RelativeLayout>
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </FrameLayout >

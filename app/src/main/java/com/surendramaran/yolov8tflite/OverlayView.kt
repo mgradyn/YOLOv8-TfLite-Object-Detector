@@ -66,7 +66,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
         canvas.drawRect(left, top, right, bottom, boxPaint)
 
-        val drawableText = "${box.clsName} %.2f".format(box.cnf)
+        val clsName = box.clsName
+        val cnf = "%.2f".format(box.cnf)
+
+        val drawableText = when (clsName) {
+            "flower" -> "bunga $cnf "
+            "unripe" -> "mentah $cnf"
+            "underripe" -> "kurang matang $cnf"
+            "ripe" -> "matang $cnf "
+            "abnormal" -> "abnormal $cnf "
+            else -> "error $cnf"
+        }
+
         textBackgroundPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
         canvas.drawRect(
             left,

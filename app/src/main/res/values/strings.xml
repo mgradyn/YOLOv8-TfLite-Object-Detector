@@ -17,33 +17,33 @@
 
     <string name="label_interence_time">Inference Time</string>
     <string name="label_fps">Frames per Second</string>
-    <string name="label_confidence_threshold">Confidence Threshold</string>
+    <string name="label_confidence_threshold">Threshold</string>
     <string name="label_iou_threshold">IoU Threshold</string>
     <string name="label_max_results">Max Results</string>
-    <string name="label_threads">Number of Threads</string>
+    <string name="label_threads">Threads</string>
     <string name="label_delegate">Delegate</string>
     <string name="label_models">ML Model</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="total_count">Total Count</string>
+    <string name="total_count">Jumlah Total</string>
     <string name="reset_total_count">Reset</string>
     <string name="save_total_count">Save</string>
     <string name="label_forceGPU">Force GPU (Danger)</string>
-    <string name="export_to_csv">Export to CSV</string>
+    <string name="export_to_csv">Export ke CSV</string>
     <string name="upload">Upload</string>
-    <string name="location">Location</string>
+    <string name="location">Lokasi</string>
     <string name="latitude">Latitude:</string>
     <string name="longitude">Longitude:</string>
-    <string name="count">Count</string>
-    <string name="ripe">Ripe:</string>
-    <string name="underripe">Underripe:</string>
-    <string name="unripe">Unripe:</string>
-    <string name="flower">Flower:</string>
+    <string name="count">Jumlah</string>
+    <string name="ripe">Matang:</string>
+    <string name="underripe">Kurang Matang:</string>
+    <string name="unripe">Mentah:</string>
+    <string name="flower">Bunga:</string>
     <string name="abnormal">Abnormal:</string>
     <string name="total">Total:</string>
     <string name="default_web_client_id">369320849354-6age63inu8gqtteqv0ih98drg1melvt6.apps.googleusercontent.com</string>
     <string name="sync">sync</string>
-    <string name="delete">Delete</string>
+    <string name="delete">Hapus</string>
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>
