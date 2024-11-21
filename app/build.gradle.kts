@@ -39,6 +39,41 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += listOf(
+                "*/*/libconstants.so",
+                "*/*/libdji_innertools.so",
+                "*/*/libdjibase.so",
+                "*/*/libDJICSDKCommon.so",
+                "*/*/libDJIFlySafeCore-CSDK.so",
+                "*/*/libdjifs_jni-CSDK.so",
+                "*/*/libDJIRegister.so",
+                "*/*/libdjisdk_jni.so",
+                "*/*/libDJIUpgradeCore.so",
+                "*/*/libDJIUpgradeJNI.so",
+                "*/*/libDJIWaypointV2Core-CSDK.so",
+                "*/*/libdjiwpv2-CSDK.so",
+                "*/*/libffmpeg.so",
+                "*/*/libFlightRecordEngine.so",
+                "*/*/libvideo-framing.so",
+                "*/*/libwaes.so",
+                "*/*/libagora-rtsa-sdk.so",
+                "*/*/libc++.so",
+                "*/*/libc++_shared.so",
+                "*/*/libmrtc_28181.so",
+                "*/*/libmrtc_agora.so",
+                "*/*/libmrtc_core.so",
+                "*/*/libmrtc_core_jni.so",
+                "*/*/libmrtc_data.so",
+                "*/*/libmrtc_log.so",
+                "*/*/libmrtc_onvif.so",
+                "*/*/libmrtc_rtmp.so",
+                "*/*/libmrtc_rtsp.so"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -101,4 +136,12 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx:20.3.0")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation ("com.dji:dji-sdk-v5-aircraft:5.2.0")
+    implementation ("com.dji:dji-sdk-v5-networkImp:5.2.0")
+    compileOnly ("com.dji:dji-sdk-v5-aircraft-provided:5.2.0")
+
+    implementation ("com.squareup.okio:okio:1.15.0")
+    implementation ("com.squareup.wire:wire-runtime:2.2.0")
+    implementation ("com.airbnb.android:lottie:3.3.1")
 }

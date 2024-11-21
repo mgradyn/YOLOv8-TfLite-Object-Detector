@@ -1,6 +1,7 @@
 package com.surendramaran.yolov8tflite
 
 import android.app.Application
+import android.content.Context
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -13,6 +14,11 @@ class TreeApplication: Application() {
     // rather than when the application starts
     private val database by lazy { TreeDatabase.getDatabase(this, applicationScope) }
     val repository by lazy { TreeRepository(database.treeDao()) }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        com.secneo.sdk.Helper.install(this)
+    }
 
     override fun onCreate() {
         super.onCreate()

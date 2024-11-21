@@ -1,6 +1,7 @@
 package com.surendramaran.yolov8tflite
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -11,10 +12,15 @@ import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.surendramaran.yolov8tflite.databinding.ActivityMainBinding
+import dji.v5.common.error.IDJIError
+import dji.v5.common.register.DJISDKInitEvent
+import dji.v5.manager.SDKManager
+import dji.v5.manager.interfaces.SDKManagerCallback
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
     private lateinit var navController: NavController
+    private val TAG = "FFBCounter"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +42,42 @@ class MainActivity : AppCompatActivity() {
         manageDrawerBehavior()
         findViewById<TextView>(R.id.homeSidebarItem)
             .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
+    }
+
+    private fun registerApp() {
+        SDKManager.getInstance().init(this, object : SDKManagerCallback {
+            override fun onRegisterSuccess() {
+                Log.i(TAG, "FFBCounter onRegisterSuccess")
+            }
+
+            override fun onRegisterFailure(error: IDJIError) {
+                Log.i(TAG, "FFBCounter onRegisterFailure")
+            }
+
+            override fun onProductDisconnect(productId: Int) {
+                Log.i(TAG, "FFBCounter onProductDisconnect")
+            }
+
+            override fun onProductConnect(productId: Int) {
+                Log.i(TAG, "FFBCounter onProductConnect")
+            }
+
+            override fun onProductChanged(productId: Int) {
+                Log.i(TAG, "FFBCounter onProductChanged")
+            }
+
+            override fun onInitProcess(event: DJISDKInitEvent, totalProcess: Int) {
+                Log.i(TAG, "FFBCounter onInitProcess")
+                if (event == DJISDKInitEvent.INITIALIZE_COMPLETE) {
+                    Log.i(TAG, "myApp start registerApp")
+                    SDKManager.getInstance().registerApp()
+                }
+            }
+
+            override fun onDatabaseDownloadProgress(current: Long, total: Long) {
+                Log.i(TAG, "myApp onDatabaseDownloadProgress")
+            }
+        })
     }
 
     private fun manageDrawerBehavior() {
