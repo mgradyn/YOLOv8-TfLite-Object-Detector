@@ -12,4 +12,9 @@
     <color name="icPressed">#AAFFFFFF</color>
     <color name="selected_sidebar_background">#8be8cb</color>
     <color name="red_material">#FF7F7F</color>
+    <color name="lapis_lazuli">#336699</color>
+    <color name="uranian_blue">#A8E0FF</color>
+    <color name="cambridge_green">#7CA982</color>
+    <color name="mustard">#FED766</color>
+    <color name="old_rose">#A37774</color>
 </resources>

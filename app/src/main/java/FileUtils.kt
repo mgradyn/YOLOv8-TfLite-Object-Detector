@@ -1,3 +1,4 @@
+
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -40,7 +41,8 @@ class FileUtils {
                 underripe = totalCount["underripe"]?.count ?: 0,
                 unripe = totalCount["unripe"]?.count ?: 0,
                 flower = totalCount["flower"]?.count ?: 0,
-                abnromal = totalCount["abnormal"]?.count ?: 0,
+                abnormal = totalCount["abnormal"]?.count ?: 0,
+                date = System.currentTimeMillis(),
                 total = totalCount.values.sumOf { it.count }
             )
             treeViewModel.insert(newTree)

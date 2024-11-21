@@ -29,7 +29,6 @@ class Detector(
     var numThreadsUsed: Int = 4,
     var maxResults: Int = 10,
     var utilizeGPU: Boolean = true,
-    var forceGPU: Boolean = false,
 ) {
 
     private var interpreter: InterpreterApi? = null
@@ -55,7 +54,7 @@ class Detector(
                     options.apply {
                         runtime = InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY
                         numThreads = numThreadsUsed
-                        if (utilizeGPU && (useGpu || forceGPU)) addDelegateFactory(GpuDelegateFactory())
+                        addDelegateFactory(GpuDelegateFactory())
                     }
 
                     try {

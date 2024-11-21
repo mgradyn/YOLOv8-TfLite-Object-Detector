@@ -33,6 +33,7 @@ import com.surendramaran.yolov8tflite.R
 import com.surendramaran.yolov8tflite.SignInCallback
 import com.surendramaran.yolov8tflite.TreeApplication
 import com.surendramaran.yolov8tflite.adapter.TreeCardAdapter
+import com.surendramaran.yolov8tflite.entities.CategoryCount
 import com.surendramaran.yolov8tflite.entities.Tree
 import java.io.File
 import java.util.UUID
@@ -153,7 +154,8 @@ class TreeListFragment : Fragment() {
                 underripe = treeEntity.underripe,
                 unripe = treeEntity.unripe,
                 flower = treeEntity.flower,
-                abnromal = treeEntity.abnromal,
+                abnormal = treeEntity.abnormal,
+                date = treeEntity.date,
                 total = treeEntity.total
             )
 
@@ -163,6 +165,17 @@ class TreeListFragment : Fragment() {
                 .addOnSuccessListener { _ ->
                     progressBar.visibility = View.GONE
                     Toast.makeText(requireActivity(), "data uploaded", Toast.LENGTH_SHORT).show()
+
+                    val categoryDict = mutableMapOf(
+                        "ripe" to tree.ripe,
+                        "underripe" to tree.underripe,
+                        "unripe" to tree.unripe,
+                        "flower" to tree.flower,
+                        "abnormal" to tree.abnormal
+                    )
+
+                    setCategoryCount(categoryDict, false)
+
                     treeViewModel.update(tree)
 
                 }
@@ -183,6 +196,16 @@ class TreeListFragment : Fragment() {
                     // Delete from Firestore
                     val documentRef = db.collection("trees").document(tree.id)
                     transaction.delete(documentRef)
+
+                    val categoryDict = mutableMapOf(
+                        "ripe" to tree.ripe,
+                        "underripe" to tree.underripe,
+                        "unripe" to tree.unripe,
+                        "flower" to tree.flower,
+                        "abnormal" to tree.abnormal
+                    )
+
+                    setCategoryCount(categoryDict, true)
 
                     // Delete from Room
                     treeViewModel.delete(tree)
@@ -234,7 +257,7 @@ class TreeListFragment : Fragment() {
         csvWriter().open(csvFile, append = false) {
             writeRow(listOf("id", "name", "latitude", "longitude", "ripe", "underripe", "unripe", "flower", "abnormal", "total"))
             treeList.forEachIndexed { _, tree ->
-                writeRow(listOf(tree.id, tree.name, tree.latitude, tree.longitude, tree.ripe, tree.underripe, tree.unripe, tree.flower, tree.abnromal, tree.total))
+                writeRow(listOf(tree.id, tree.name, tree.latitude, tree.longitude, tree.ripe, tree.underripe, tree.unripe, tree.flower, tree.abnormal, tree.total))
             }
         }
     }
@@ -247,6 +270,46 @@ class TreeListFragment : Fragment() {
         else {
             signIn()
             syncTrees()
+        }
+    }
+
+    private fun setCategoryCount(individualCategoryDict: Map<String, Int>, deleteTree: Boolean) {
+        if (mAuth.currentUser != null) {
+            val getQuery = db.collection("count_category")
+
+            getQuery.get()
+                .addOnSuccessListener { res ->
+                    val batch = db.batch()
+
+                    for (doc in res) {
+                        val id = doc.getString("id") ?: ""
+                        val totalCount = doc.getLong("total_count")?.toInt() ?: 0
+
+                        val newCount = totalCount + (if (deleteTree) -individualCategoryDict.getOrDefault(id, 0) else individualCategoryDict.getOrDefault(id, 0))
+
+                        val categoryCountVal = CategoryCount(
+                            id = id,
+                            total_count = newCount
+                        )
+
+                        val docRef = db.collection("count_category").document(id)
+                        batch.set(docRef, categoryCountVal)
+                    }
+
+                    batch.commit()
+                        .addOnFailureListener { e ->
+                            progressBar.visibility = View.GONE
+                            Toast.makeText(requireActivity(), "Failed to update counts", Toast.LENGTH_SHORT)
+                                .show()
+                            Log.d("Failed to update counts", e.toString())
+                        }
+                }
+                .addOnFailureListener { e ->
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(requireActivity(), "Failed to get count", Toast.LENGTH_SHORT)
+                        .show()
+                    Log.d("Failed to get count", e.toString())
+                }
         }
     }
 
@@ -278,6 +341,7 @@ class TreeListFragment : Fragment() {
                             doc.getLong("flower")?.toInt() ?: 0,
                             doc.getLong("abnormal")?.toInt() ?: 0,
                             doc.getLong("total")?.toInt() ?: 0,
+                            doc.getLong("date") ?: 0,
                             doc.getString("id") ?: UUID.randomUUID().toString()
                         )
                         treeViewModel.insert(tree)

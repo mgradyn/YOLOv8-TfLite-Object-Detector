@@ -104,6 +104,8 @@ class MainActivity : AppCompatActivity() {
                     .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
                 findViewById<TextView>(R.id.treeListSidebarItem)
                     .setBackgroundColor(resources.getColor(R.color.white))
+                findViewById<TextView>(R.id.droneListSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
             }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -116,6 +118,23 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.treeListSidebarItem)
                     .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
                 findViewById<TextView>(R.id.homeSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
+                findViewById<TextView>(R.id.droneListSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
+            }
+            if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                activityMainBinding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        findViewById<TextView>(R.id.droneListSidebarItem).setOnClickListener {
+            if (navController.currentDestination?.id != R.id.drone_list_fragment) {
+                navController.navigate(R.id.drone_list_fragment)
+                findViewById<TextView>(R.id.droneListSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.selected_sidebar_background))
+                findViewById<TextView>(R.id.homeSidebarItem)
+                    .setBackgroundColor(resources.getColor(R.color.white))
+                findViewById<TextView>(R.id.treeListSidebarItem)
                     .setBackgroundColor(resources.getColor(R.color.white))
             }
             if (activityMainBinding.drawerLayout.isDrawerOpen(GravityCompat.START)) {

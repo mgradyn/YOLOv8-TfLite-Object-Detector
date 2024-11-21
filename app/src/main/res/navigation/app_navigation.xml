@@ -32,6 +32,9 @@
         <action
             android:id="@+id/action_auth_fragment_to_tree_list_fragment"
             app:destination="@id/tree_list_fragment" />
+        <action
+            android:id="@+id/action_auth_fragment_to_droneFragment"
+            app:destination="@id/drone_list_fragment" />
     </fragment>
 
     <fragment
@@ -46,6 +49,21 @@
         <action
             android:id="@+id/action_tree_list_fragment_to_auth_fragment"
             app:destination="@id/auth_fragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/drone_list_fragment"
+        android:name="com.surendramaran.yolov8tflite.fragments.DroneFragment"
+        android:label="fragment_drone"
+        tools:layout="@layout/fragment_drone" >
+        <action
+            android:id="@+id/action_droneFragment_to_auth_fragment"
+            app:destination="@id/auth_fragment" />
+        <action
+            android:id="@+id/action_droneFragment_to_camera_fragment"
+            app:destination="@id/camera_fragment" />
+        <action
+            android:id="@+id/action_droneFragment_to_tree_list_fragment"
+            app:destination="@id/tree_list_fragment" />
     </fragment>
 
 </navigation>

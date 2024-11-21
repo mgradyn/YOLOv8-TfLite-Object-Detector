@@ -33,6 +33,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -47,6 +48,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.slider.Slider
 import com.surendramaran.yolov8tflite.BoundingBox
 import com.surendramaran.yolov8tflite.Constants
 import com.surendramaran.yolov8tflite.Detector
@@ -59,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -77,6 +80,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var cameraProvider: ProcessCameraProvider? = null
+    private lateinit var camera: Camera
     private lateinit var detector: Detector
     private lateinit var cameraExecutor: ExecutorService
 
@@ -161,7 +165,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             textView.layoutParams = textLayoutParams
-            textView.text = "${countClass}: ${countAmount}"
+
+            textView.text = when (countClass) {
+                "flower" -> "bunga: $countAmount "
+                "unripe" -> "mentah: $countAmount"
+                "underripe" -> "kurang matang: $countAmount"
+                "ripe" -> "matang: $countAmount "
+                "abnormal" -> "abnormal: $countAmount "
+                else -> "$countClass: $countAmount "
+            }
             textView.id = View.generateViewId()
             countViews[countClass] = textView
 
@@ -171,8 +183,17 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             addButton.layoutParams = buttonLayoutParams
-            addButton.setImageResource(R.drawable.baseline_add_24)
-            addButton.setOnClickListener(addCountPerClassListener(count))
+
+            when (countClass) {
+                "flower" -> addButton.setImageResource(R.drawable.legend_2)
+                "unripe" -> addButton.setImageResource(R.drawable.legend_3)
+                "underripe" -> addButton.setImageResource(R.drawable.legend_1)
+                "ripe" -> addButton.setImageResource(R.drawable.legend_4)
+                "abnormal" -> addButton.setImageResource(R.drawable.legend_5)
+                else -> addButton.setImageResource(R.drawable.legend_3)
+            }
+//            addButton.setImageResource(R.drawable.baseline_add_24)
+//            addButton.setOnClickListener(addCountPerClassListener(count))
             addButton.id = View.generateViewId()
 
             linearLayout.addView(textView)
@@ -184,6 +205,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             gridLayout.addView(linearLayout, index)
         }
 
+        setAdjustmentButton(view)
 
         return fragmentCameraBinding.root
     }
@@ -204,6 +226,50 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
+    private fun setAdjustmentButton(view: View) {
+        val buttonMappings = mapOf(
+            R.id.button_plus1 to "unripe",
+            R.id.button_minus1 to "unripe",
+            R.id.button_plus2 to "underripe",
+            R.id.button_minus2 to "underripe",
+            R.id.button_plus3 to "ripe",
+            R.id.button_minus3 to "ripe",
+            R.id.button_plus4 to "flower",
+            R.id.button_minus4 to "flower",
+            R.id.button_plus5 to "abnormal",
+            R.id.button_minus5 to "abnormal"
+        )
+
+        buttonMappings.forEach { (buttonId, key) ->
+            val button = view.findViewById<ImageButton>(buttonId)
+            button?.setOnClickListener {
+                counts[key]?.let { count ->
+                    val isIncrement = when (buttonId) {
+                        R.id.button_plus1, R.id.button_plus2, R.id.button_plus3, R.id.button_plus4, R.id.button_plus5 -> true
+                        R.id.button_minus1, R.id.button_minus2, R.id.button_minus3, R.id.button_minus4, R.id.button_minus5 -> false
+                        else -> false
+                    }
+                    adjustCountPerClass(count, isIncrement)
+                }
+            }
+        }
+    }
+
+    private fun adjustCountPerClass(count: Count, isIncrement: Boolean) {
+        try {
+            soundPool?.play(soundID, 0.5f, 0.5f, 1, 0, 1f)
+        } catch (e: IOException) {
+            Log.e("SoundError", "Error playing sound", e)
+        }
+
+        val totalCountItem = totalCount[count.name]
+        if (totalCountItem != null) {
+            totalCountItem.count += if (isIncrement) 1 else -1
+            totalCount[count.name] = totalCountItem
+        }
+    }
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         detector = Detector(requireContext(), Constants.MODEL_PATH, Constants.LABELS_PATH, this)
@@ -214,6 +280,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         fragmentCameraBinding.viewFinder.post {
             setupCamera()
         }
+
+        val zoomSlider: Slider = view.findViewById(R.id.zoomSlider)
+        zoomSlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                val zoomRatio = value.coerceIn(1f, 5f)
+                camera.cameraControl.setZoomRatio(zoomRatio)
+            }
+        }
+
 
         val countButton = view.findViewById<Button>(R.id.countBtn)
         countButton?.setOnClickListener {
@@ -235,6 +310,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         saveButton?.setOnClickListener {
             showSaveCountDialog()
         }
+
+//        setAdjustmentButton(view)
 
         initBottomSheetControls()
     }
@@ -316,11 +393,6 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
                     /* no op */
                 }
             }
-
-        fragmentCameraBinding.bottomSheetLayout.checkBoxForceGPU.setOnCheckedChangeListener { _, isChecked ->
-            detector.forceGPU = isChecked
-            updateControlsUi()
-        }
     }
 
     private fun updateControlsUi() {
@@ -374,7 +446,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
 
         cameraProvider.unbindAll()
         try {
-            cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+            camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
         } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
@@ -453,13 +525,12 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         }
     }
 
-    private fun addCountPerClassListener(count: MutableMap.MutableEntry<String, Count>)
-            : View.OnClickListener {
+    private fun adjustCountPerClassListener(count: MutableMap.MutableEntry<String, Count>, isIncrement: Boolean): View.OnClickListener {
         return View.OnClickListener {
             soundPool?.play(soundID, 0.5f, 0.5f, 1, 0, 1f)
             val totalCountItem = totalCount[count.key]
             if (totalCountItem != null) {
-                totalCountItem.count += count.value.count
+                totalCountItem.count += if (isIncrement) count.value.count else -count.value.count
                 totalCount[count.key] = totalCountItem
             }
         }
@@ -469,7 +540,17 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         requireActivity().runOnUiThread {
             for (item in newCounts) {
                 val textViewToUpdate = countViews[item.name]
-                textViewToUpdate?.text = "${item.name}: ${item.count}"
+
+                val ffbCount = item.count
+
+                textViewToUpdate?.text = when (item.name) {
+                    "flower" -> "bunga: $ffbCount "
+                    "unripe" -> "mentah: $ffbCount"
+                    "underripe" -> "kurang matang: $ffbCount"
+                    "ripe" -> "matang: $ffbCount "
+                    "abnormal" -> "abnormal: $ffbCount "
+                    else -> "error: $ffbCount"
+                }
                 countViews[item.name] = textViewToUpdate ?: countViews[item.name]!!
                 counts[item.name]?.count = item.count
             }
@@ -495,7 +576,17 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
         val linearLayout = totalCountView?.findViewById<LinearLayout>(R.id.countDialogContent)
         for (count in totalCount) {
             val textView = TextView(requireContext())
-            textView.text = "${count.value.name}: ${count.value.count}"
+
+            val ffbCount = count.value.count
+
+            textView.text = when (count.value.name) {
+                "flower" -> "bunga: $ffbCount"
+                "unripe" -> "mentah: $ffbCount"
+                "underripe" -> "kurang matang: $ffbCount"
+                "ripe" -> "matang: $ffbCount"
+                "abnormal" -> "abnormal: $ffbCount"
+                else -> "error: $ffbCount"
+            }
             textView.textSize = 20f
             linearLayout?.addView(textView)
         }
@@ -606,7 +697,16 @@ class CameraFragment : Fragment(R.layout.fragment_camera), Detector.DetectorList
             }
             for (item in counts) {
                 val textViewToUpdate = countViews[item.value.name]
-                textViewToUpdate?.text = "${item.value.name}: 0"
+
+                textViewToUpdate?.text = when (item.value.name) {
+                    "flower" -> "bunga: 0 "
+                    "unripe" -> "mentah: 0"
+                    "underripe" -> "kurang matang: 0"
+                    "ripe" -> "matang: 0 "
+                    "abnormal" -> "abnormal: 0 "
+                    else -> "error: 0"
+                }
+
                 countViews[item.value.name] = textViewToUpdate ?: countViews[item.value.name]!!
             }
             view?.invalidate()

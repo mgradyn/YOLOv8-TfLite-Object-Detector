@@ -76,7 +76,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="TreeList"
+            android:text="Pohon"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:background="?android:attr/selectableItemBackground" />
+        <!-- Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EAEAEA" />
+
+        <!-- TreeList Item -->
+        <TextView
+            android:id="@+id/droneListSidebarItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Drone"
             android:textSize="18sp"
             android:textColor="#000000"
             android:background="?android:attr/selectableItemBackground" />
