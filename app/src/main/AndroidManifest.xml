@@ -39,7 +39,7 @@
 
         <meta-data
             android:name="com.dji.sdk.API_KEY"
-            android:value="9e5fecaa279116a3d13b701a"/>
+            android:value="${DJI_API_KEY}"/>
 
         <uses-library
             android:name="libOpenCL.so"
